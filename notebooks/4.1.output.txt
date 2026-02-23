@@ -52,15 +52,6 @@
 [resnet18|seed42] Epoch 24/25 | train_loss=0.1085 | val_loss=1.3677 | val_acc=66.06% | lr=0.001000->0.001000 | no_improve(2/5)
 [resnet18|seed42] Epoch 25/25 | train_loss=0.1001 | val_loss=0.3744 | val_acc=87.59% | lr=0.001000->0.001000 | no_improve(3/5)
 [DONE] model=resnet18 seed=42 acc=95.36% macro_f1=0.9531
-[START] model=mobilenet_v3_small seed=42 params=1530893 device=cpu
-[mobilenet_v3_small|seed42] Epoch 1/25 | train_loss=2.3578 | val_loss=2.5763 | val_acc=8.03% | lr=0.001000->0.001000 | improved
-[mobilenet_v3_small|seed42] Epoch 2/25 | train_loss=1.9007 | val_loss=2.6038 | val_acc=8.03% | lr=0.001000->0.001000 | no_improve(1/5)
-[mobilenet_v3_small|seed42] Epoch 3/25 | train_loss=1.6038 | val_loss=2.6249 | val_acc=7.66% | lr=0.001000->0.001000 | no_improve(2/5)
-[mobilenet_v3_small|seed42] Epoch 4/25 | train_loss=1.3287 | val_loss=2.6531 | val_acc=8.03% | lr=0.001000->0.001000 | no_improve(3/5)
-[mobilenet_v3_small|seed42] Epoch 5/25 | train_loss=1.1190 | val_loss=2.6671 | val_acc=8.03% | lr=0.001000->0.000200 | no_improve(4/5)
-[mobilenet_v3_small|seed42] Epoch 6/25 | train_loss=0.8053 | val_loss=2.6807 | val_acc=8.03% | lr=0.000200->0.000200 | no_improve(5/5)
-[mobilenet_v3_small|seed42] Early stopping at epoch 6. Best val_acc=8.03% (epoch 1)
-[DONE] model=mobilenet_v3_small seed=42 acc=7.73% macro_f1=0.0110
 [START] model=ast_tiny seed=42 params=1807501 device=cpu
 /home/anhcbt/extend/workspace/convmixer_model/src/baseline_experiment.py:392: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
   self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=depth)

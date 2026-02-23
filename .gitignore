@@ -5,3 +5,5 @@ data/rename.py
 urban/
 docs/
 *.pyc
+data/models/baselines/*_best.pth
+data/models/baselines/*_report.json

@@ -20,6 +20,22 @@
     "val": 274,
     "test": 194
   },
-  "runs_csv": "/home/anhcbt/extend/workspace/convmixer_model/data/models/baselines/baseline_runs.csv",
-  "summary_csv": "/home/anhcbt/extend/workspace/convmixer_model/data/models/baselines/baseline_summary.csv"
+  "requested_models": [
+    "convmixer_256_8",
+    "resnet18",
+    "ast_tiny"
+  ],
+  "requested_seeds": [
+    42,
+    43,
+    44
+  ],
+  "trained_count": 0,
+  "skipped_count": 9,
+  "include_existing_runs": true,
+  "skip_completed_runs": true,
+  "summary_only_config_models": true,
+  "runs_csv": "data/models/baselines/baseline_runs.csv",
+  "summary_csv": "data/models/baselines/baseline_summary.csv",
+  "clean_note": "Compare outputs were refreshed and aligned to selected models."
 }

@@ -239,57 +239,6 @@ class ResNet18Fallback(nn.Module):
         return self.fc(x)
 
 
-class DepthwiseSeparableBlock(nn.Module):
-    def __init__(self, in_channels: int, out_channels: int, stride: int) -> None:
-        super().__init__()
-        self.block = nn.Sequential(
-            nn.Conv2d(
-                in_channels,
-                in_channels,
-                kernel_size=3,
-                stride=stride,
-                padding=1,
-                groups=in_channels,
-                bias=False,
-            ),
-            nn.BatchNorm2d(in_channels),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-        )
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.block(x)
-
-
-class MobileNetV3SmallFallback(nn.Module):
-    def __init__(self, num_classes: int) -> None:
-        super().__init__()
-        self.features = nn.Sequential(
-            nn.Conv2d(1, 16, kernel_size=3, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(16),
-            nn.ReLU(inplace=True),
-            DepthwiseSeparableBlock(16, 24, stride=2),
-            DepthwiseSeparableBlock(24, 24, stride=1),
-            DepthwiseSeparableBlock(24, 40, stride=2),
-            DepthwiseSeparableBlock(40, 40, stride=1),
-            DepthwiseSeparableBlock(40, 80, stride=2),
-            DepthwiseSeparableBlock(80, 80, stride=1),
-            nn.Conv2d(80, 128, kernel_size=1, bias=False),
-            nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True),
-        )
-        self.pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(128, num_classes)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.features(x)
-        x = self.pool(x)
-        x = torch.flatten(x, 1)
-        return self.fc(x)
-
-
 def build_convmixer_256_8(num_classes: int) -> nn.Module:
     dim = 256
     depth = 8
@@ -335,24 +284,6 @@ def build_resnet18(num_classes: int) -> nn.Module:
         return model
     print("[WARN] torchvision không khả dụng, dùng ResNet18Fallback.")
     return ResNet18Fallback(num_classes)
-
-
-def build_mobilenet_v3_small(num_classes: int) -> nn.Module:
-    if tv_models is not None:
-        model = tv_models.mobilenet_v3_small(weights=None)
-        first = model.features[0][0]
-        model.features[0][0] = nn.Conv2d(
-            1,
-            first.out_channels,
-            kernel_size=first.kernel_size,
-            stride=first.stride,
-            padding=first.padding,
-            bias=False,
-        )
-        model.classifier[-1] = nn.Linear(model.classifier[-1].in_features, num_classes)
-        return model
-    print("[WARN] torchvision không khả dụng, dùng MobileNetV3SmallFallback.")
-    return MobileNetV3SmallFallback(num_classes)
 
 
 class ASTTiny(nn.Module):
@@ -417,7 +348,6 @@ def build_model(model_name: str, num_classes: int) -> nn.Module:
     builders = {
         "convmixer_256_8": build_convmixer_256_8,
         "resnet18": build_resnet18,
-        "mobilenet_v3_small": build_mobilenet_v3_small,
         "ast_tiny": build_ast_tiny,
     }
     if model_name not in builders:
@@ -432,7 +362,6 @@ class TrainConfig:
     model_names: Tuple[str, ...] = (
         "convmixer_256_8",
         "resnet18",
-        "mobilenet_v3_small",
         "ast_tiny",
     )
     seeds: Tuple[int, ...] = (42,)
@@ -449,6 +378,13 @@ class TrainConfig:
     scheduler_factor: float = 0.2
     scheduler_patience: int = 3
     scheduler_min_lr: float = 1e-6
+    # Multi-run controls:
+    # - include_existing_runs: load previous baseline_runs.csv before new execution
+    # - skip_completed_runs: skip (model, seed) already present in baseline_runs.csv
+    # - summary_only_config_models: summary only for models in config.model_names
+    include_existing_runs: bool = True
+    skip_completed_runs: bool = True
+    summary_only_config_models: bool = True
 
 
 def _create_dataloaders(
@@ -649,6 +585,7 @@ def _evaluate_model(
 def run_baseline_suite(config: TrainConfig):
     os.makedirs(config.output_dir, exist_ok=True)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    runs_path = os.path.join(config.output_dir, "baseline_runs.csv")
 
     class_names, split_data = build_stratified_split(
         config.data_dir,
@@ -657,11 +594,28 @@ def run_baseline_suite(config: TrainConfig):
         val_ratio=config.val_ratio,
     )
 
-    runs = []
+    runs_by_key = {}
     history_store = {}
+    trained_count = 0
+    skipped_count = 0
+
+    if config.include_existing_runs and os.path.exists(runs_path):
+        existing_df = pd.read_csv(runs_path)
+        required_cols = {"model", "seed"}
+        if required_cols.issubset(set(existing_df.columns)):
+            for _, row in existing_df.iterrows():
+                key = (str(row["model"]), int(row["seed"]))
+                runs_by_key[key] = row.to_dict()
+            print(f"[INFO] Loaded {len(existing_df)} existing runs from {runs_path}")
 
     for seed in config.seeds:
         for model_name in config.model_names:
+            key = (model_name, int(seed))
+            if config.skip_completed_runs and key in runs_by_key:
+                skipped_count += 1
+                print(f"[SKIP] model={model_name} seed={seed} already exists in baseline_runs.csv")
+                continue
+
             set_seed(seed)
             run_name = f"{model_name}|seed{seed}"
             dataloaders = _create_dataloaders(
@@ -713,7 +667,8 @@ def run_baseline_suite(config: TrainConfig):
                 "checkpoint_path": model_ckpt,
                 "report_path": report_path,
             }
-            runs.append(run)
+            runs_by_key[key] = run
+            trained_count += 1
             history_store[f"{model_name}_seed{seed}"] = history
 
             print(
@@ -721,25 +676,43 @@ def run_baseline_suite(config: TrainConfig):
                 f"acc={run['test_accuracy']:.2f}% macro_f1={run['macro_f1']:.4f}"
             )
 
-    runs_df = pd.DataFrame(runs)
-    runs_path = os.path.join(config.output_dir, "baseline_runs.csv")
+    runs_df = pd.DataFrame(list(runs_by_key.values()))
+    if not runs_df.empty:
+        runs_df["seed"] = runs_df["seed"].astype(int)
+        runs_df = runs_df.sort_values(["model", "seed"]).reset_index(drop=True)
     runs_df.to_csv(runs_path, index=False)
 
-    summary_df = (
-        runs_df.groupby("model", as_index=False)
-        .agg(
-            params=("params", "mean"),
-            test_accuracy_mean=("test_accuracy", "mean"),
-            test_accuracy_std=("test_accuracy", "std"),
-            macro_f1_mean=("macro_f1", "mean"),
-            macro_f1_std=("macro_f1", "std"),
-            weighted_f1_mean=("weighted_f1", "mean"),
-            weighted_f1_std=("weighted_f1", "std"),
-            train_seconds_mean=("train_seconds", "mean"),
-            infer_seconds_mean=("infer_seconds", "mean"),
+    summary_input = runs_df
+    if config.summary_only_config_models and not runs_df.empty:
+        summary_input = runs_df[runs_df["model"].isin(config.model_names)].copy()
+
+    summary_df = pd.DataFrame()
+    if not summary_input.empty:
+        summary_df = (
+            summary_input.groupby("model", as_index=False)
+            .agg(
+                n_runs=("seed", "nunique"),
+                params=("params", "mean"),
+                test_accuracy_mean=("test_accuracy", "mean"),
+                test_accuracy_std=("test_accuracy", "std"),
+                macro_f1_mean=("macro_f1", "mean"),
+                macro_f1_std=("macro_f1", "std"),
+                weighted_f1_mean=("weighted_f1", "mean"),
+                weighted_f1_std=("weighted_f1", "std"),
+                train_seconds_mean=("train_seconds", "mean"),
+                infer_seconds_mean=("infer_seconds", "mean"),
+            )
+            .fillna(0.0)
         )
-        .fillna(0.0)
-    )
+        for metric in ("test_accuracy", "macro_f1", "weighted_f1"):
+            std_col = f"{metric}_std"
+            ci_col = f"{metric}_ci95"
+            summary_df[ci_col] = np.where(
+                summary_df["n_runs"] > 1,
+                1.96 * summary_df[std_col] / np.sqrt(summary_df["n_runs"]),
+                0.0,
+            )
+
     summary_path = os.path.join(config.output_dir, "baseline_summary.csv")
     summary_df.to_csv(summary_path, index=False)
 
@@ -752,6 +725,13 @@ def run_baseline_suite(config: TrainConfig):
         "device": str(device),
         "classes": class_names,
         "split_size": split_size,
+        "requested_models": list(config.model_names),
+        "requested_seeds": list(config.seeds),
+        "trained_count": trained_count,
+        "skipped_count": skipped_count,
+        "include_existing_runs": config.include_existing_runs,
+        "skip_completed_runs": config.skip_completed_runs,
+        "summary_only_config_models": config.summary_only_config_models,
         "runs_csv": runs_path,
         "summary_csv": summary_path,
     }
