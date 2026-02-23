@@ -1,0 +1,25 @@
+{
+  "device": "cpu",
+  "classes": [
+    "bat_den",
+    "bat_dieu_hoa",
+    "bat_quat",
+    "bat_tv",
+    "do_am",
+    "dong_rem",
+    "mo_rem",
+    "nhiet_do",
+    "tat_den",
+    "tat_dieu_hoa",
+    "tat_quat",
+    "tat_tv",
+    "unknown"
+  ],
+  "split_size": {
+    "train": 1385,
+    "val": 274,
+    "test": 194
+  },
+  "runs_csv": "/home/anhcbt/extend/workspace/convmixer_model/data/models/baselines/baseline_runs.csv",
+  "summary_csv": "/home/anhcbt/extend/workspace/convmixer_model/data/models/baselines/baseline_summary.csv"
+}
