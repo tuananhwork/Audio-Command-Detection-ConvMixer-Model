@@ -1,87 +1,156 @@
-# Audio Command Detection Project
+# A Preliminary Study of ConvMixer in the Audio Domain Using Mel-Spectrogram Representation for Lightweight Speech Command Recognition
 
-## Project Structure
+## Abstract
 
-```
-.
-├── data/
-│   ├── processed/          # Processed audio files
-│   ├── raw/               # Raw audio files
-│   └── models/            # Trained model files
-│   └── _background_noise_/     # Google background noise
-├── notebooks/
-│   ├── 1.0_preprocess.ipynb           # Initial data preprocessing
-│   ├── 2.0_batch_preprocess.ipynb     # Batch preprocessing of audio files
-│   ├── 3.0_mel_features_extraction.ipynb  # Feature extraction from audio
-│   ├── 4.0_train_model.ipynb          # Model training
-│   ├── 5.0_validate.ipynb             # Model validation
-│   ├── 6.0_convmixer.ipynb            # ConvMixer model training
-│   └── 7.0_convmixer_validate.ipynb   # ConvMixer model validation
-├── src/
-│   └── audio_command_detector.py      # Main application script
-└── requirements.txt                   # Project dependencies
-```
+This repository contains the implementation and dataset for a preliminary investigation into the application of ConvMixer architecture for speech command recognition using Mel-spectrogram features. The study evaluates the performance of a lightweight ConvMixer model on a self-collected Vietnamese speech command dataset, exploring the applicability of convolutional mixer networks in audio classification tasks.
 
-## Installation
+## Introduction
 
-1. Create a virtual environment (recommended):
+The objective of this study is to explore the efficacy of ConvMixer, a convolutional architecture originally proposed for computer vision that combines the strengths of convolutional and mixer layers, for speech command recognition. The scope is limited to lightweight model configurations suitable for resource-constrained environments, using Mel-spectrogram representations as input features.
 
-```bash
-python -m venv venv
-source venv/bin/activate  # On Linux/Mac
-# or
-.\venv\Scripts\activate  # On Windows
-```
+## Dataset
 
-2. Install dependencies:
+The dataset consists of self-collected Vietnamese speech commands recorded from multiple speakers. It includes 12 distinct command classes plus an "unknown" category for out-of-vocabulary utterances:
+
+- `bat_den` (turn on light)
+- `bat_dieu_hoa` (turn on air conditioner)
+- `bat_quat` (turn on fan)
+- `bat_tv` (turn on TV)
+- `do_am` (humidity)
+- `dong_rem` (close curtain)
+- `mo_rem` (open curtain)
+- `nhiet_do` (temperature)
+- `tat_den` (turn off light)
+- `tat_dieu_hoa` (turn off air conditioner)
+- `tat_quat` (turn off fan)
+- `tat_tv` (turn off TV)
+- `unknown` (out-of-vocabulary utterances)
+
+Raw audio files are stored in `data/raw/` organized by command class. Background noise recordings are available in `data/bg_noise/`.
+
+## Preprocessing Pipeline
+
+Audio preprocessing follows a multi-stage pipeline:
+
+1. **Audio Loading and Resampling**: Convert to mono channel at 16 kHz sampling rate
+2. **Noise Reduction**: Apply spectral subtraction using the `noisereduce` library
+3. **Voice Activity Detection (VAD)**: Use WebRTC VAD to isolate speech segments
+4. **Segment Extraction**: Extract 1-second segments with highest energy from 1.5-second windows
+5. **Normalization**: Apply peak normalization to standardize amplitude
+
+## Feature Extraction
+
+Mel-spectrogram features are extracted with the following parameters:
+
+- Number of Mel bins: 128
+- FFT size: 2048
+- Hop length: 128
+- Frequency range: 20 Hz to 8 kHz
+- Power spectrogram converted to decibel scale
+- Normalized to [0, 1] range
+- Resized to fixed dimensions: 128 × 32 pixels
+
+## Model Configuration
+
+The ConvMixer architecture is implemented with:
+
+- **Dimensions**: 256 channels
+- **Depth**: 8 blocks
+- **Kernel size**: 9 (for depthwise convolution)
+- **Patch size**: 7 (for initial patch embedding)
+- **Number of classes**: 13
+
+Each ConvMixer block consists of:
+
+- Depthwise convolution with GELU activation and batch normalization
+- Pointwise convolution with GELU activation and batch normalization
+- Residual connection
+
+## Training and Evaluation Protocol
+
+### Data Split
+
+- Training set: 75% of samples
+- Validation set: 15% of samples
+- Test set: 10% of samples
+
+### Training Configuration
+
+- **Optimizer**: Adam
+- **Loss function**: Cross-entropy
+- **Batch size**: 32
+- **Learning rate scheduler**: ReduceLROnPlateau
+- **Early stopping**: Patience-based with minimum delta
+- **Data augmentation**: Time masking, frequency masking, and time stretching applied during training
+
+### Evaluation Metrics
+
+- Overall accuracy
+- Per-class precision, recall, and F1-score
+- Confusion matrix analysis
+
+The evaluation protocol is designed for preliminary empirical validation rather than large-scale benchmarking.
+
+## Reproducibility
+
+### Prerequisites
+
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Running the Project
+### Data Preparation
 
-### Option 1: Direct Execution
+1. Run preprocessing notebooks in order:
 
-To run the audio command detector directly:
+   ```bash
+   jupyter notebook notebooks/1.0_preprocess.ipynb
+   jupyter notebook notebooks/2.0_batch_preprocess.ipynb
+   jupyter notebook notebooks/2.5_generate_noise_dataset.ipynb
+   ```
+
+2. Extract Mel-spectrogram features:
+   ```bash
+   jupyter notebook notebooks/3.0_mel_features_extraction.ipynb
+   jupyter notebook notebooks/3.5_extract_mel_for_unknown.ipynb
+   ```
+
+### Model Training
+
+Execute the training notebook:
 
 ```bash
-python src/audio_command_detector.py
+jupyter notebook notebooks/4.0_train_model.ipynb
 ```
 
-This will:
+### Inference
 
-- Start the audio command detection system
-- Press Enter to start recording
-- The system will process the audio and predict the command
-- Results will show the predicted command and confidence scores
-- Press Ctrl+C to exit
+Use the command-line interface for real-time prediction:
 
-### Option 2: Model Experimentation
+```python
+from src.audio_command_detector import AudioCommandDetector
 
-#### Path 1: Standard Model
+detector = AudioCommandDetector()
+result = detector.predict('path/to/audio.wav')
+print(result)
+```
 
-1. Run the notebooks in sequence:
-   ```bash
-   jupyter notebook notebooks/2.0_batch_preprocess.ipynb
-   jupyter notebook notebooks/3.0_mel_features_extraction.ipynb
-   jupyter notebook notebooks/4.0_train_model.ipynb
-   jupyter notebook notebooks/5.0_validate.ipynb
-   ```
+## Data Availability
 
-#### Path 2: ConvMixer Model
+The dataset was generated by the authors and is publicly available in this repository (https://github.com/tuananhwork/Audio-Command-Detection-ConvMixer-Model) under the `data/` directory. Raw audio files are provided in WAV format, along with processed features in NumPy array format.
 
-1. Run the notebooks in sequence:
-   ```bash
-   jupyter notebook notebooks/2.0_batch_preprocess.ipynb
-   jupyter notebook notebooks/3.0_mel_features_extraction.ipynb
-   jupyter notebook notebooks/6.0_convmixer.ipynb
-   jupyter notebook notebooks/7.0_convmixer_validate.ipynb
-   ```
+## Citation
 
-## Notes
+If you use this code or dataset in your research, please cite:
 
-- Make sure you have all required dependencies installed
-- The model expects audio files in WAV format
-- The system is optimized for 16kHz mono audio
-- Supported commands include: bat_den, bat_dieu_hoa, bat_quat, bat_tv, do_am, dong_rem, mo_rem, nhiet_do, tat_den, tat_dieu_hoa, tat_quat, tat_tv
+```
+@article{author2026convmixer,
+  title={A Preliminary Study of ConvMixer in the Audio Domain Using Mel-Spectrogram Representation for Lightweight Speech Command Recognition},
+  author={Author Name},
+  journal={Scientific Reports},
+  note={under review},
+  year={2026}
+}
+```
