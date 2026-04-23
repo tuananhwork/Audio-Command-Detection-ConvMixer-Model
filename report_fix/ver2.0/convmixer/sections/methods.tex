@@ -39,7 +39,7 @@ The pipeline begins by loading the raw recordings, converting them to mono, and 
 
 Voice Activity Detection (VAD) is performed using Google’s WebRTC algorithm~\cite{WebRTCVAD}, which analyzes 30~ms frames and removes non-speech intervals. A sensitivity level of~2 offers a balanced trade-off between preserving speech and eliminating silence or background noise.
 
-Next, a two-stage high-energy extraction ensures consistent and content-rich inputs. A 1.5-second sliding window (stride 0.3~s) first identifies the segment with the highest total energy, followed by a finer 1-second search (stride 20~ms) within that region to locate the most informative sub-segment. This hierarchical approach captures the most relevant portion of each utterance while standardizing duration.
+Next, a two-stage high-energy extraction ensures consistent and content-rich inputs. A 1.5-second sliding window (stride 0.2~s) first identifies the segment with the highest total energy, followed by a finer 1-second search (stride 20~ms) within that region to locate the most informative sub-segment. This hierarchical approach captures the most relevant portion of each utterance while standardizing duration.
 
 Finally, peak normalization scales each waveform to a uniform amplitude, with the maximum absolute value set to~0.99 of the dynamic range and converted to 16-bit integer format. The resulting one-second segments are noise-suppressed, amplitude-normalized, and rich in speech information, providing stable and high-quality inputs for Mel-spectrogram feature extraction. Figure~\ref{fig:preprocessing} illustrates the complete preprocessing flow.
 
@@ -48,6 +48,21 @@ Finally, peak normalization scales each waveform to a uniform amplitude, with th
 \includegraphics[width=0.75\linewidth]{imgs/fig2.png}
 \caption{\label{fig:preprocessing}Overview of the audio preprocessing pipeline. The raw waveform undergoes denoising, voice activity detection (VAD), normalization, and segmentation into 1-second clips before feature extraction.}
 \end{figure}
+
+\subsection*{Preprocessing Ablation Protocol}
+
+To directly quantify the contribution of each preprocessing component, we define a step-wise ablation protocol based on the implemented pipeline in our public repository. All ablation variants share the same downstream feature extraction and model training configuration, so performance differences can be attributed to preprocessing choices rather than model or optimization changes.
+
+The common front-end constraints are fixed as follows: mono conversion, resampling to 16~kHz, and extraction of a fixed 1-second segment via high-energy selection. The full preprocessing pipeline consists of three switchable components:
+\begin{itemize}
+\item \textbf{Denoising}: spectral noise reduction using the \texttt{noisereduce} implementation.
+\item \textbf{WebRTC VAD}: frame-level speech masking with 30~ms frames and sensitivity level~2.
+\item \textbf{Peak normalization}: waveform amplitude scaling to 0.99 of full range before 16-bit conversion.
+\end{itemize}
+
+We evaluate eight configurations: (i) no optional preprocessing, (ii) denoising only, (iii) VAD only, (iv) normalization only, (v) denoising+VAD, (vi) denoising+normalization, (vii) VAD+normalization, and (viii) denoising+VAD+normalization (full pipeline). For each configuration, Mel-spectrograms are extracted with the same parameters ($n\_fft=2048$, $hop\_length=128$, $n\_{mels}=128$, $f_{min}=20$~Hz), converted to log scale, Min--Max normalized, and resized to $128\\times32$.
+
+This ablation design is used to report test Accuracy, Macro-F1, and Weighted-F1 under the same split and seed policy as the main experiment.
 
 
 
@@ -100,13 +115,13 @@ The resulting Mel-spectrograms were resized to a fixed dimension of $128 \times 
 
 \subsection*{Data Augmentation}
 
-To enhance model robustness and mitigate overfitting on the relatively small dataset (1,853 samples), state-of-the-art data augmentation techniques were applied only to the training set. Time Masking was applied with a 50\% probability, randomly covering up to 10\% of the time dimension. Frequency Masking was also applied with a 50\% probability, randomly covering up to 10\% of the Mel bins. Furthermore, Time Stretching was used with a 50\% probability, altering the playback speed between 80\% and 120\% of the original duration via linear interpolation, before resizing the feature back to the original dimensions of 128 × 32 \cite{Cubuk2020RandAugment, Zhang2017Mixup, Yun2019CutMix, Zhong2020RandomErasing}.
+To enhance model robustness and mitigate overfitting on the relatively small dataset (4,460 samples), state-of-the-art data augmentation techniques were applied only to the training set. Time Masking was applied with a 50\% probability, randomly covering up to 10\% of the time dimension. Frequency Masking was also applied with a 50\% probability, randomly covering up to 10\% of the Mel bins. Furthermore, Time Stretching was used with a 50\% probability, altering the playback speed between 80\% and 120\% of the original duration via linear interpolation, before resizing the feature back to the original dimensions of 128 × 32 \cite{Cubuk2020RandAugment, Zhang2017Mixup, Yun2019CutMix, Zhong2020RandomErasing}.
 
 \subsection*{ConvMixer Architecture}
 
 The ConvMixer architecture was employed for its simplicity and parameter efficiency, operating on a patch representation similar to ViT and MLP-Mixer but utilizing only standard convolutions for both spatial and channel mixing \cite{trockman2022patchesneed, dosovitskiy2020image, Tolstikhin2021MLPMixer}. Unlike attention-based models, ConvMixer preserves convolutional inductive biases such as spatial locality and translation equivariance while retaining the patch-based abstraction of vision transformers.
 
-The implemented model follows the ConvMixer-256/8 configuration, where the hidden dimension ($dim = 256$) and depth ($depth = 8$) define the number of feature channels and repeated mixing blocks, respectively. This setting results in approximately 0.72 million trainable parameters, striking a balance between expressive capacity and computational efficiency. Preliminary ablation trials with smaller (ConvMixer-128/8) and deeper variants (ConvMixer-256/12) revealed that ConvMixer-256/8 offered the best trade-off between accuracy and model complexity, avoiding overfitting while maintaining fast convergence.
+The implemented model follows the ConvMixer-256/8 configuration, where the hidden dimension ($dim = 256$) and depth ($depth = 8$) define the number of feature channels and repeated mixing blocks, respectively. This setting results in 719,117 trainable parameters (approximately 0.72 million), striking a balance between expressive capacity and computational efficiency. Preliminary ablation trials with smaller (ConvMixer-128/8) and deeper variants (ConvMixer-256/12) revealed that ConvMixer-256/8 offered the best trade-off between accuracy and model complexity, avoiding overfitting while maintaining fast convergence.
 
 \begin{itemize}
 \item \textbf{Patch Embedding:} The single-channel input ($1 \times 128 \times 32$) is transformed into 256-channel patch embeddings through a convolutional stem:
@@ -139,7 +154,7 @@ where $\text{MixBlock}_i$ alternates between spatial and channel mixing. This co
 \subsection*{Training Configuration}
 
 \subsubsection*{Dataset Split}
-The dataset of 1,853 Vietnamese speech command samples was divided using a stratified split to maintain class balance across subsets: 75\% for training (1,385 samples), 15\% for validation (274 samples), and 10\% for testing (194 samples). Each subset preserves proportional representation of all 13 classes. This split policy was fixed and shared by all compared architectures.
+The dataset of 4,460 Vietnamese speech command samples was divided using a stratified split to maintain class balance across subsets: 75\% for training (3,341 samples), 15\% for validation (665 samples), and 10\% for testing (454 samples). Each subset preserves proportional representation of all 13 classes. This split policy was fixed and shared by all compared architectures.
 
 \subsubsection*{Optimization Settings}
 Training was performed using the Adam optimizer with an initial learning rate ($lr = 0.001$) and weight decay ($1 \times 10^{-4}$) for L2 regularization \cite{Loshchilov2018AdamW}. The batch size was set to 32, and the CrossEntropyLoss function was applied for multi-class classification.
@@ -151,15 +166,39 @@ A $ReduceLROnPlateau$ scheduler was used to automatically adjust the learning ra
 To prevent overfitting, Early Stopping was employed with a patience of 5 epochs and a minimum required improvement ($min\_delta = 0.02$) in validation accuracy. The maximum training duration was capped at 25 epochs, balancing computational efficiency and model stability.
 
 \subsubsection*{Controlled Baseline Protocol}
-To address fairness concerns in cross-model evaluation, we define a controlled benchmark in which ConvMixer-256/8, ResNet-18, MobileNetV2, EfficientNet, and AST (tiny configuration) are trained on exactly the same dataset split, with identical preprocessing, Mel-spectrogram extraction settings, augmentation strategy, optimizer family, early stopping policy, and epoch budget. This design isolates architectural effects and avoids confounding factors caused by inconsistent pipelines.
+To address fairness concerns in cross-model evaluation, we define a controlled benchmark in which ConvMixer-256/8, ResNet-18, MobileNetV2, EfficientNet, and AST (tiny configuration) are trained on the same dataset split, with aligned preprocessing, Mel-spectrogram extraction settings, augmentation strategy, optimizer family, early stopping policy, and epoch budget. This design aims to isolate architectural effects and minimize confounding factors caused by inconsistent pipelines.
 
 For the ResNet baseline, we adopt a standard ResNet-18 configuration adapted to spectrogram input by setting the first convolution to one input channel and replacing the classification head with a 13-class output layer.
 
 For the transformer baseline, we use the official AST implementation (\url{https://github.com/YuanGongND/ast/}) with a tiny configuration (reduced embedding width and depth) \cite{Gong2021AST} so that training cost remains comparable to lightweight convolutional baselines while preserving the core patch-embedding and self-attention mechanism.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{\label{tab:benchmark_protocol_summary}Controlled benchmark protocol summary for cross-model comparison.}
+\begin{tabular}{p{0.34\linewidth}p{0.60\linewidth}}
+\hline
+\textbf{Protocol Item} & \textbf{Setting} \\
+\hline
+Compared models & ConvMixer-256/8, ResNet-18, MobileNetV2, EfficientNet-B0, AST (tiny configuration) \\
+Dataset and classes & Vietnamese speech commands, 13 classes, 4{,}460 samples \\
+Split policy & Stratified split with fixed ratios: 75\% train, 15\% validation, 10\% test \\
+Split reproducibility & Fixed split seed and identical split for all models \\
+Audio preprocessing & Shared denoising, WebRTC VAD, high-energy segment extraction, peak normalization \\
+Feature representation & Mel-spectrogram, $n\_fft=2048$, $hop\_length=128$, $n\_{mels}=128$, resized to $128\\times32$ \\
+Augmentation policy & Shared Time Masking, Frequency Masking, and Time Stretching configuration \\
+Optimization family & Adam-based optimization with aligned scheduling and early-stopping rules \\
+Training budget & Shared epoch budget and stopping criteria across models \\
+Evaluation metrics & Accuracy, Macro-F1, Weighted-F1, test loss, parameter count, and runtime \\
+Statistical reporting & Five seeds (42--46), reported as mean$\pm$std \\
+\hline
+\end{tabular}
+\normalsize
+\end{table}
 
 \subsubsection*{Multi-seed Statistical Evaluation}
 To improve result reliability on a relatively small dataset, each model is trained with five random seeds: 42, 43, 44, 45, and 46. For each metric (Accuracy, macro-F1, weighted-F1, and loss), we report mean$\pm$std across seeds. We additionally compute a 95\% confidence interval for the mean when needed:
 \[
 \mathrm{CI}_{95\%} = \bar{x} \pm 1.96\frac{s}{\sqrt{n}}, \quad n=5.
 \]
-This protocol reduces dependence on a single random run and provides a more stable basis for model comparison.
+This protocol reduces dependence on a single random run and provides a more stable basis for model comparison. For reference, the current ConvMixer-256/8 run reports 97.14\% test accuracy, macro-F1 0.9716, weighted-F1 0.9714, and test loss 0.1103.

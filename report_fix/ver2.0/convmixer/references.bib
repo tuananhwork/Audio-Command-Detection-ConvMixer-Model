@@ -8,18 +8,20 @@
       url={https://arxiv.org/abs/2201.09792}, 
 }
 
-@article{dosovitskiy2020image,
-  title={An image is worth 16x16 words: Transformers for image recognition at scale},
-  author={Dosovitskiy, Alexey},
-  journal={arXiv preprint arXiv:2010.11929},
-  year={2020}
+@inproceedings{dosovitskiy2020image,
+  title     = {An Image Is Worth 16x16 Words: Transformers for Image Recognition at Scale},
+  author    = {Dosovitskiy, Alexey and Beyer, Lucas and Kolesnikov, Alexander and Weissenborn, Dirk and Zhai, Xiaohua and Unterthiner, Thomas and Dehghani, Mostafa and Minderer, Matthias and Heigold, Georg and Gelly, Sylvain and Uszkoreit, Jakob and Houlsby, Neil},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2021},
+  url       = {https://openreview.net/forum?id=YicbFdNTTy}
 }
 
-@article{Tolstikhin2021MLPMixer,
-  author  = {Ilya Tolstikhin and Neil Houlsby and Alexander Kolesnikov and Lucas Beyer and Xiaohua Zhai and Thomas Unterthiner and Jessica Yung and others},
-  title   = {Mlp-mixer: An all-mlp architecture for vision},
-  journal = {arXiv preprint arXiv:2105.01601},
-  year    = {2021}
+@inproceedings{Tolstikhin2021MLPMixer,
+  author    = {Tolstikhin, Ilya and Houlsby, Neil and Kolesnikov, Alexander and Beyer, Lucas and Zhai, Xiaohua and Unterthiner, Thomas and Yung, Jessica and Steiner, Andreas and Keysers, Daniel and Uszkoreit, Jakob and Lucic, Mario and Dosovitskiy, Alexey},
+  title     = {{MLP}-{Mixer}: An All-{MLP} Architecture for Vision},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2021},
+  url       = {https://proceedings.neurips.cc/paper/2021/hash/cba0a4ee5ccd02fda0fe3f9a3e7b89fe-Abstract.html}
 }
 
 @inproceedings{Gong2021AST,
@@ -30,10 +32,14 @@
 }
 
 @inproceedings{Touvron2020DeiT,
-  author    = {Hugo Touvron and Matthieu Cord and Matthijs Douze and Francisco Massa and Alexandre Sablayrolles and Hervé Jégou},
-  title     = {Training data-efficient image transformers \& distillation through attention},
-  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
-  year      = {2020}
+  author    = {Touvron, Hugo and Cord, Matthieu and Douze, Matthijs and Massa, Francisco and Sablayrolles, Alexandre and J{\'e}gou, Herv{\'e}},
+  title     = {Training Data-Efficient Image Transformers \& Distillation through Attention},
+  booktitle = {Proceedings of the 38th International Conference on Machine Learning (ICML)},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {139},
+  pages     = {10347--10357},
+  year      = {2021},
+  url       = {https://proceedings.mlr.press/v139/touvron21a.html}
 }
 
 @article{Touvron2021ResMLP,
@@ -65,8 +71,8 @@
 }
 
 @inproceedings{Loshchilov2018AdamW,
-  author    = {Ilya Loshchilov and Frank Hutter},
-  title     = {Fixing weight decay regularization in adam},
+  author    = {Loshchilov, Ilya and Hutter, Frank},
+  title     = {Fixing Weight Decay Regularization in {Adam}},
   booktitle = {International Conference on Learning Representations (ICLR)},
   year      = {2019}
 }
@@ -86,17 +92,20 @@
 }
 
 @inproceedings{Cubuk2020RandAugment,
-  author    = {Ekin D Cubuk and Barret Zoph and Jonathon Shlens and Quoc V Le},
-  title     = {Randaugment: Practical automated data augmentation with a reduced search space},
+  author    = {Cubuk, Ekin D. and Zoph, Barret and Shlens, Jonathon and Le, Quoc V.},
+  title     = {RandAugment: Practical Automated Data Augmentation with a Reduced Search Space},
   booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops},
-  year      = {2020}
+  year      = {2020},
+  pages     = {702--703},
+  doi       = {10.1109/CVPRW50498.2020.00095}
 }
 
-@article{Zhang2017Mixup,
-  author  = {Hongyi Zhang and Moustapha Cisse and Yann N Dauphin and David Lopez-Paz},
-  title   = {mixup: Beyond empirical risk minimization},
-  journal = {arXiv preprint arXiv:1710.09412},
-  year    = {2017}
+@inproceedings{Zhang2017Mixup,
+  author    = {Zhang, Hongyi and Cisse, Moustapha and Dauphin, Yann N. and Lopez-Paz, David},
+  title     = {mixup: Beyond Empirical Risk Minimization},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2018},
+  url       = {https://openreview.net/forum?id=r1Ddp1-Rb}
 }
 
 @inproceedings{Yun2019CutMix,
@@ -194,26 +203,25 @@
       url={https://arxiv.org/abs/1810.08559}, 
 }
 
-@misc{howard2019searchingmobilenetv3,
-      title={Searching for MobileNetV3}, 
-      author={Andrew Howard and Mark Sandler and Grace Chu and Liang-Chieh Chen and Bo Chen and Mingxing Tan and Weijun Wang and Yukun Zhu and Ruoming Pang and Vijay Vasudevan and Quoc V. Le and Hartwig Adam},
+@inproceedings{howard2019searchingmobilenetv3,
+      title={Searching for MobileNetV3},
+      author={Howard, Andrew and Sandler, Mark and Chu, Grace and Chen, Liang-Chieh and Chen, Bo and Tan, Mingxing and Wang, Weijun and Zhu, Yukun and Pang, Ruoming and Vasudevan, Vijay and Le, Quoc V. and Adam, Hartwig},
       year={2019},
-      eprint={1905.02244},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/1905.02244}, 
+      booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+      pages={1314--1324},
+      doi={10.1109/ICCV.2019.00140},
+      url={https://openaccess.thecvf.com/content_ICCV_2019/html/Howard_Searching_for_MobileNetV3_ICCV_2019_paper.html}
 }
 
 @article{Wong2020TinySpeechAC,
   title={TinySpeech: Attention Condensers for Deep Speech Recognition Neural Networks on Edge Devices},
-  author={Alexander Wong and Mahmoud Famouri and Maya Pavlova and Siddharth Surana},
-  journal={ArXiv},
+  author={Wong, Alexander and Famouri, Mahmoud and Pavlova, Maya and Surana, Siddharth},
+  journal={arXiv preprint arXiv:2008.04245},
   year={2020},
-  volume={abs/2008.04245},
-  url={https://api.semanticscholar.org/CorpusID:221090280}
+  url={https://arxiv.org/abs/2008.04245}
 }
 
-@ARTICLE{9606720,
+@article{9606720,
   author={Letaief, Khaled B. and Shi, Yuanming and Lu, Jianmin and Lu, Jianhua},
   journal={IEEE Journal on Selected Areas in Communications}, 
   title={Edge Artificial Intelligence for 6G: Vision, Enabling Technologies, and Applications}, 
@@ -221,8 +229,8 @@
   volume={40},
   number={1},
   pages={5-36},
-  keywords={Artificial intelligence;6G mobile communication;Task analysis;Sensors;Communication system security;Training;Standards;6G;edge AI;edge training;edge inference;federated learning;over-the-air computation;task-oriented communication;service-driven resource allocation;large-scale optimization;end-to-end architecture},
-  doi={10.1109/JSAC.2021.3126076}}
+  doi={10.1109/JSAC.2021.3126076}
+}
 
 @misc{zhu2023multiscaleaudiospectrogramtransformer,
       title={Multiscale Audio Spectrogram Transformer for Efficient Audio Classification}, 
@@ -234,14 +242,14 @@
       url={https://arxiv.org/abs/2303.10757}, 
 }
 
-@misc{gong2021astaudiospectrogramtransformer,
-      title={AST: Audio Spectrogram Transformer}, 
-      author={Yuan Gong and Yu-An Chung and James Glass},
+@inproceedings{gong2021astaudiospectrogramtransformer,
+      title={AST: Audio Spectrogram Transformer},
+      author={Gong, Yuan and Chung, Yu-An and Glass, James},
       year={2021},
-      eprint={2104.01778},
-      archivePrefix={arXiv},
-      primaryClass={cs.SD},
-      url={https://arxiv.org/abs/2104.01778}, 
+      booktitle={Proc. Interspeech 2021},
+      pages={571--575},
+      doi={10.21437/Interspeech.2021-698},
+      url={https://www.isca-archive.org/interspeech_2021/gong21b_interspeech.html}
 }
 
 @inproceedings{Koutini_2022,
@@ -255,24 +263,22 @@
    month=sep, collection={interspeech_2022} 
 }
 
-@misc{liu2022convnet2020s,
-      title={A ConvNet for the 2020s}, 
-      author={Zhuang Liu and Hanzi Mao and Chao-Yuan Wu and Christoph Feichtenhofer and Trevor Darrell and Saining Xie},
+@inproceedings{liu2022convnet2020s,
+      title={A ConvNet for the 2020s},
+      author={Liu, Zhuang and Mao, Hanzi and Wu, Chao-Yuan and Feichtenhofer, Christoph and Darrell, Trevor and Xie, Saining},
       year={2022},
-      eprint={2201.03545},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2201.03545}, 
+      booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+      pages={11976--11986},
+      doi={10.1109/CVPR52688.2022.01167},
+      url={https://openaccess.thecvf.com/content/CVPR2022/html/Liu_A_ConvNet_for_the_2020s_CVPR_2022_paper.html}
 }
 
-@misc{mehta2022mobilevitlightweightgeneralpurposemobilefriendly,
-      title={MobileViT: Light-weight, General-purpose, and Mobile-friendly Vision Transformer}, 
-      author={Sachin Mehta and Mohammad Rastegari},
+@inproceedings{mehta2022mobilevitlightweightgeneralpurposemobilefriendly,
+      title={MobileViT: Light-Weight, General-Purpose, and Mobile-Friendly Vision Transformer},
+      author={Mehta, Sachin and Rastegari, Mohammad},
       year={2022},
-      eprint={2110.02178},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2110.02178}, 
+      booktitle={International Conference on Learning Representations (ICLR)},
+      url={https://openreview.net/forum?id=vh-0sUt8HlG}
 }
 
 @article{mcfee2015,
@@ -304,15 +310,13 @@
 }
 
 
-@ARTICLE{9229505,
+@article{9229505,
   author={Kong, Qiuqiang and Cao, Yin and Iqbal, Turab and Wang, Yuxuan and Wang, Wenwu and Plumbley, Mark D.},
   journal={IEEE/ACM Transactions on Audio, Speech, and Language Processing}, 
   title={PANNs: Large-Scale Pretrained Audio Neural Networks for Audio Pattern Recognition}, 
   year={2020},
   volume={28},
-  number={},
   pages={2880-2894},
-  keywords={Tagging;Pattern recognition;Task analysis;Convolution;Neural networks;Acoustics;Training;Audio tagging;pretrained audio neural networks;transfer learning},
   doi={10.1109/TASLP.2020.3030497}
 }
 
@@ -325,4 +329,3 @@
       primaryClass={cs.SD},
       url={https://arxiv.org/abs/1609.09430}, 
 }
-

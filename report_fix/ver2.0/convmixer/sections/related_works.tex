@@ -1,6 +1,7 @@
 \section*{Related Works}
 
 This review of related works presents the developmental context of audio classification methodologies, spanning from traditional feature extraction techniques to modern deep learning models, including architectures based on Convolution and Self-Attention. This context serves to position the necessity for an efficient, simple, and patch-based architecture such as ConvMixer within the field of audio classification.
+In the revised version, we also reorganize the reference narrative to emphasize peer-reviewed and methodologically relevant studies, while keeping citation formatting consistent throughout the manuscript.
 
 \subsection*{Traditional Audio Classification Approaches}
 
@@ -18,7 +19,10 @@ The emergence of ViT and MLP-Mixer models prompted a fundamental inquiry regardi
 
 Despite its compact architecture (implementable in approximately six lines of PyTorch code) \cite{Paszke2019PyTorch, trockman2022patchesneed}, ConvMixer achieves competitive accuracy compared to ResNet, ViT, and MLP-Mixer when parameter counts are similar \cite{trockman2022patchesneed}. For example, experiments on CIFAR-10 show that ConvMixer can exceed 96\% accuracy with only 0.7 million parameters, demonstrating the data efficiency conferred by convolutional inductive bias \cite{trockman2022patchesneed}. While more complex patch-based models such as the Audio Spectrogram Transformer (AST) have been widely applied \cite{Gong2021AST}, the adaptation and empirical evaluation of ConvMixer in the audio domain—particularly for Vietnamese speech command recognition—has not been previously reported. 
 
-To the best of our knowledge, this work constitutes the first empirical study to adapt and validate ConvMixer for Mel-spectrogram-based audio classification, highlighting its potential as a lightweight and resource-efficient alternative to deeper CNN and Transformer architectures in practical audio tasks.
+To the best of our knowledge, this work constitutes an early empirical study that adapts and validates ConvMixer for Mel-spectrogram-based audio classification, highlighting its potential as a lightweight and resource-efficient alternative to deeper CNN and Transformer architectures in practical audio tasks.
+
+In this revised manuscript, we position novelty in a constrained and testable manner: the contribution is not the invention of a new backbone, but a controlled adaptation-and-evaluation study that transfers ConvMixer to Vietnamese speech command recognition with a unified preprocessing pipeline, matched training protocol across baselines, and multi-seed statistical reporting.
+This scope is intentionally narrower than large-scale pretraining studies, but it provides clearer evidence on model behavior in low-resource, deployment-oriented settings.
 
 \begin{table}[h!]
 \centering
@@ -34,7 +38,7 @@ AST (Audio Spectrogram Transformer) \cite{Gong2021AST} & 88.0 & 17.0 & 98.1 & Au
 AclNet (CNN) \cite{Huang2018AclNet} & 0.16 & 0.05 & 81.8 & ESC-50 \\
 PIPMN (MLP) \cite{Chen2022PIPMN} & 1.0 & 0.2 & 96.0 & UrbanSound8K \\
 VATT (Transformer) \cite{Akbari2021VATT} & 38.7 & 14.5 & 97.5 & AudioSet \\
-\textbf{ConvMixer-256/8 (ours)} & \textbf{0.7} & \textbf{0.3} & \textbf{97.4} & Vietnamese Speech Commands \\
+\textbf{ConvMixer-256/8 (ours)} & \textbf{0.72} & \textbf{0.3} & \textbf{97.14} & Vietnamese Speech Commands \\
 \hline
 \end{tabular}}
 \label{tab:comparison_models}

@@ -29,15 +29,18 @@ Within the audio classification context, while Transformer-based models (such as
 Crucially, the application and evaluation of the ConvMixer architecture—a simple, parameter-efficient, and effective patch-based convolutional model—within the audio domain, particularly for recognizing Vietnamese speech commands, remains a significant research gap.
 This study aims to propose and rigorously evaluate the effectiveness of the ConvMixer architecture for the classification of Vietnamese speech commands.
 
-To the best of our knowledge, this study is among the first systematic efforts to extend the ConvMixer architecture from computer vision to the audio domain.
+Formally, this work addresses the following problem: given short Vietnamese utterances recorded in practical smart-home conditions, can a compact patch-based convolutional model achieve strong and stable command classification performance under a controlled training protocol, while remaining suitable for edge-oriented deployment constraints (model size, training/inference cost, and reproducibility across seeds)?
+To answer this question, we explicitly optimize for a three-way trade-off among recognition quality, computational efficiency, and statistical reliability, rather than maximizing single-run accuracy alone.
+
+To the best of our knowledge, this study is an early systematic effort to extend the ConvMixer architecture from computer vision to the audio domain.
 Specifically, we pioneer its application to Mel-spectrogram-based Vietnamese speech command classification,
 bridging a clear research gap and demonstrating that a purely convolutional patch-based approach can effectively capture temporal–spectral information without relying on self-attention mechanisms.
 This novelty positions ConvMixer as a promising new direction for lightweight, efficient, and deployable speech understanding models.
 
 The main contributions are four-fold: First, we propose a comprehensive audio processing pipeline incorporating advanced signal preprocessing (denoising, WebRTC VAD, and amplitude normalization) to ensure optimal input quality \cite{WebRTCVAD}, followed by the extraction of fixed-size Mel-spectrogram features with dimensions of 128×32.
-Second, we implement and train a compact ConvMixer model (8 blocks, 256 channels, and approximately 0.7 million parameters) on the 13-class Vietnamese speech command dataset with targeted data augmentation.
-Third, we establish a controlled comparison protocol on the same dataset and training budget for ConvMixer-256/8, ResNet-18, MobileNetV2, EfficientNet, and AST (tiny configuration), enabling a fairer model-level assessment under identical preprocessing and feature settings.
-Fourth, we strengthen statistical reliability by evaluating all compared models over five random seeds (42--46) and reporting mean$\pm$std metrics, while retaining detailed class-wise error analysis to explain model behavior.
+Second, we implement and train a compact ConvMixer model (8 blocks, 256 channels, and approximately 0.72 million parameters, i.e., 719,117 trainable parameters) on the 13-class Vietnamese speech command dataset with targeted data augmentation.
+Third, we establish a controlled comparison protocol on the same dataset and training budget for ConvMixer-256/8, ResNet-18, MobileNetV2, EfficientNet, and AST (tiny configuration), enabling a fairer model-level assessment under shared preprocessing and feature settings.
+Fourth, we strengthen statistical reliability by evaluating all compared models over five random seeds (42--46) and reporting mean$\pm$std metrics, while retaining detailed class-wise error analysis to explain model behavior; the current ConvMixer-256/8 reference figures are 97.14\% accuracy, macro-F1 0.9716, and weighted-F1 0.9714.
 Overall, this revised study positions ConvMixer as a computationally efficient and competitive patch-based convolutional alternative for Vietnamese speech command recognition. Figure~\ref{fig:comparison} provides a conceptual comparison between generic patch-based architectures (on the left) and the proposed ConvMixer adaptation for the audio domain (on the right), highlighting the key architectural differences. In particular, the figure illustrates how ConvMixer replaces self-attention and MLP-based token mixing with purely convolutional spatial–channel mixing, thereby retaining the benefits of patch-based representation while reducing model complexity.
 
 
