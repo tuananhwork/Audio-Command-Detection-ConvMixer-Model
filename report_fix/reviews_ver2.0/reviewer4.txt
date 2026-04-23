@@ -1,0 +1,25 @@
+Reviewer 4
+
+Technical Questions
+1)Model Design Justification
+What motivated the choice of the ConvMixer configuration (256 channels, 8 layers), and was any hyperparameter tuning performed to optimize this setup?
+2)Dataset Size and Generalization
+Given the relatively small dataset (1,853 samples), how does the model avoid overfitting, and how well would it generalize to larger or more diverse datasets?
+3)Preprocessing Impact
+How much does each preprocessing step (denoising, WebRTC VAD, normalization) individually contribute to the final performance?
+4) Comparison Fairness
+Can you elaborate on how fairness was ensured when comparing ConvMixer with architectures like ResNet-18, MobileNetV2, EfficientNet, and AST?
+5)Computational Efficiency
+What are the inference latency and memory usage of ConvMixer compared to the other models, especially for edge deployment scenarios?
+6)Ablation Study
+Was an ablation study conducted to evaluate the importance of patch-based design versus standard convolutional approaches?
+
+Non-Technical / Broader Impact Questions
+1)Practical Applications
+What real-world applications (e.g., voice assistants, IoT devices) would benefit most from this ConvMixer-based approach?
+2)Language Generalization
+Since the dataset is Vietnamese, how well would the model perform on other languages or multilingual datasets?
+3)Accessibility and Deployment
+How feasible is it to deploy this model on low-power or embedded devices in real-world environments?
+4)Research Contribution and Novelty
+What distinguishes this work from existing audio classification approaches, and what is the key novelty in adapting ConvMixer to the audio domain?

@@ -1,0 +1,49 @@
+\section*{Related Works}
+
+This review of related works presents the developmental context of audio classification methodologies, spanning from traditional feature extraction techniques to modern deep learning models, including architectures based on Convolution and Self-Attention. This context serves to position the necessity for an efficient, simple, and patch-based architecture such as ConvMixer within the field of audio classification.
+
+\subsection*{Traditional Audio Classification Approaches}
+
+In the initial stages, audio classification relied predominantly on manually extracting features from the raw signal. Popular features included Mel-Frequency Cepstral Coefficients (MFCC), Spectrograms, and Chroma features. The Mel-spectrogram, a time-frequency representation based on the Mel scale simulating human auditory perception, has established itself as the standard benchmark in speech and music processing \cite{Stevens1937MelScale}. After feature extraction, classical machine learning models, typically Support Vector Machines (SVM) or Random Forests (RF), were employed for classification. Although these methods provided a solid foundation, their performance was inherently limited by the representational capacity of manual features and their inability to fully exploit complex relationships within large-scale audio data.
+
+\subsection*{Deep Learning Models Based on CNN and Transformer}
+
+The emergence of deep learning revolutionized the field of audio classification. Convolutional Neural Networks (CNN) rapidly became the dominant architecture due to their capacity to exploit the locality and translation invariance of audio spectral data, which are typically treated as 2D images. Several approaches have been proposed, including architectures such as ResNet, EfficientNet, and PANN (Pretrained Audio Neural Networks) \cite{Wightman2021ResNet, Kong2020PANNs}, which were developed to enhance the capture of semantic information on the audio spectrum, achieving high performance in tasks like speech command recognition and acoustic event detection. Previous studies have shown that deep CNN models, however, often require a large number of parameters and sometimes struggle to effectively model long-range dependencies across the spectrogram.
+
+To address this limitation, Transformer-based architectures were introduced, initially in Computer Vision (CV) with the Vision Transformer (ViT) \cite{dosovitskiy2020image}. ViT demonstrated superior performance compared to traditional CNNs, especially when trained on large-scale datasets. The key to the Transformer's success lies in its use of the self-attention mechanism to capture global information. However, because the computational cost of self-attention scales quadratically with the number of pixels, ViT must convert the input image into "patches" (patch embeddings) before processing. The Audio Spectrogram Transformer (AST) is the audio domain adaptation of ViT, achieving impressive results by leveraging pre-training knowledge, often from ImageNet and AudioSet \cite{Gong2021AST, Deng2009ImageNet, Gemmeke2017AudioSet}. Subsequently, a range of other "isotropic" architectures emerged, such as MLP-Mixer and ResMLP, seeking to understand the impact of patch-based processing and uniform network structure \cite{Tolstikhin2021MLPMixer, Touvron2021ResMLP}.
+
+\subsection*{ConvMixer: Simple, Efficient, and Patch-Based}
+
+The emergence of ViT and MLP-Mixer models prompted a fundamental inquiry regarding whether their superior performance stems from the intrinsic Transformer/MLP architecture or is at least partially attributable to the adoption of a patch-based representation \cite{dosovitskiy2020image, Tolstikhin2021MLPMixer}. ConvMixer was proposed as a minimalistic yet powerful model, operating directly on input patches while maintaining uniform size and resolution throughout the network, similar to ViT and MLP-Mixer \cite{trockman2022patchesneed}. Its key distinction is that all necessary mixing operations—spatial and channel mixing—are performed solely using standard convolutions. Specifically, ConvMixer uses large-kernel depthwise convolutions for spatial mixing and $1\times 1$ pointwise convolutions for channel mixing.
+
+Despite its compact architecture (implementable in approximately six lines of PyTorch code) \cite{Paszke2019PyTorch, trockman2022patchesneed}, ConvMixer achieves competitive accuracy compared to ResNet, ViT, and MLP-Mixer when parameter counts are similar \cite{trockman2022patchesneed}. For example, experiments on CIFAR-10 show that ConvMixer can exceed 96\% accuracy with only 0.7 million parameters, demonstrating the data efficiency conferred by convolutional inductive bias \cite{trockman2022patchesneed}. While more complex patch-based models such as the Audio Spectrogram Transformer (AST) have been widely applied \cite{Gong2021AST}, the adaptation and empirical evaluation of ConvMixer in the audio domain—particularly for Vietnamese speech command recognition—has not been previously reported. 
+
+To the best of our knowledge, this work constitutes the first empirical study to adapt and validate ConvMixer for Mel-spectrogram-based audio classification, highlighting its potential as a lightweight and resource-efficient alternative to deeper CNN and Transformer architectures in practical audio tasks.
+
+\begin{table}[h!]
+\centering
+\caption{Comparison of representative architectures in audio and vision-audio classification tasks.}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{lcccc}
+\hline
+\textbf{Model} & \textbf{Params (M)} & \textbf{GFLOPs} & \textbf{Accuracy (\%)} & \textbf{Dataset} \\
+\hline
+ResNet-18 (CNN) & 11.7 & 1.8 & 94.5 & Speech Commands v2 \\
+ViT-Base (Transformer) & 86.0 & 17.6 & 97.0 & AudioSet / ImageNet \\
+AST (Audio Spectrogram Transformer) \cite{Gong2021AST} & 88.0 & 17.0 & 98.1 & AudioSet \\
+AclNet (CNN) \cite{Huang2018AclNet} & 0.16 & 0.05 & 81.8 & ESC-50 \\
+PIPMN (MLP) \cite{Chen2022PIPMN} & 1.0 & 0.2 & 96.0 & UrbanSound8K \\
+VATT (Transformer) \cite{Akbari2021VATT} & 38.7 & 14.5 & 97.5 & AudioSet \\
+\textbf{ConvMixer-256/8 (ours)} & \textbf{0.7} & \textbf{0.3} & \textbf{97.4} & Vietnamese Speech Commands \\
+\hline
+\end{tabular}}
+\label{tab:comparison_models}
+\end{table}
+
+{\footnotesize
+Note: Accuracy values are reported from the original papers and are not directly comparable due to differences in datasets. ConvMixer results are obtained on Vietnamese Speech Commands. To ensure fairer assessment, this study additionally reports controlled same-dataset comparisons across multiple lightweight models in the Results section.
+}
+
+\vspace{1pt}
+
+Building on this perspective, the next section describes the proposed methodology, including audio preprocessing, Mel-spectrogram feature extraction, and the ConvMixer-based classification framework.

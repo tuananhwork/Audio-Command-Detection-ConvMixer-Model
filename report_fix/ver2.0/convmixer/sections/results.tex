@@ -1,0 +1,201 @@
+\section*{Results}
+
+This section presents the experimental outcomes under two complementary perspectives: (i) detailed ConvMixer behavior analysis, and (ii) controlled cross-model comparison under an identical training protocol with multi-seed reporting.
+
+\subsection*{Dataset Setup}
+
+The investigation was conducted using a Vietnamese speech command dataset comprising a total of 1,853 audio samples, classified into 13 distinct command classes. These classes encompass smart device control commands (e.g., \textit{bat\_den}, \textit{tat\_tv}, \textit{mo\_rem}—turn on light, turn off TV, open curtains) alongside an unknown category. The data was partitioned into three subsets using stratified splitting to ensure high class representativeness and balanced distribution: the Training set comprised 75\% (1,385 samples), the Validation set 15\% (274 samples), and the Test set 10\% (194 samples). All compared models shared this split and the same preprocessing pipeline, and were evaluated across five random seeds (42--46) for statistical robustness. All input audio files underwent rigorous preprocessing (VAD, denoising) and were standardized into fixed-size Mel-spectrogram features of (128, 32) dimensions.
+
+\subsection*{Model Training Procedure}
+
+The ConvMixer model was implemented with an intrinsic hidden dimension ($dim$) of 256 and a depth of 8 repeating ConvMixer blocks. This configuration resulted in a small total parameter count of 719,117, lightweight compared to many contemporary deep learning architectures. The same training protocol (loss, optimizer family, scheduler policy, augmentation policy, and stopping criteria) was applied to all benchmarked models to ensure controlled comparison. To enhance generalization capability and mitigate potential overfitting, data augmentation techniques were applied exclusively to the training set. These techniques included Time Masking, Frequency Masking (randomly masking up to 10\% of the dimension with 50\% probability each), and Time Stretching (altering speed between 80\% and 120\% with 50\% probability).
+
+Training dynamics were closely monitored by the validation set. The process was capped at 25 epochs, regulated by an Early Stopping mechanism set with a patience of 5 epochs and $min\_delta$ of 0.02. The model demonstrated rapid initial learning, increasing validation accuracy from 18.25\% at Epoch 1 to 95.99\% by Epoch 15. Upon reaching a plateau, the $ReduceLROnPlateau$ scheduler automatically reduced the learning rate from $0.001$ to $0.0002$ at Epoch 19 (after patience=3 epochs without improvement). This adjustment facilitated further convergence, culminating in a peak validation accuracy of 98.18\% at Epoch 25. The final Training Loss was $0.0498$, with Validation Loss reaching a low $0.0711$.
+
+\begin{figure}[htbp]
+  \centering
+
+  \begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{imgs/fig4.png}
+    \caption*{(a) Training and validation loss}
+  \end{minipage}\hfill
+  \begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{imgs/fig5.png}
+    \caption*{(b) Validation accuracy}
+  \end{minipage}
+
+  \caption{
+  Comparison of model performance across epochs. 
+  (a) illustrates the convergence of training and validation loss, while 
+  (b) shows the progression of validation accuracy
+  }
+  \label{fig:training_metrics}
+\end{figure}
+
+\subsection*{Controlled Multi-model Comparison (Five Seeds)}
+
+Following reviewer recommendations, we established a controlled benchmark using five architectures trained on the same dataset and protocol: ConvMixer-256/8, ResNet-18, MobileNetV2, EfficientNet, and AST (tiny configuration). Each model was run with seeds 42--46, and the final report is presented as mean$\pm$std.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{\label{tab:controlled_model_comparison}Controlled model comparison on the Vietnamese speech command dataset. Accuracy/F1/Loss are reported as mean$\pm$std over five seeds (42--46).}
+\begin{tabular}{lcccccc}
+\hline
+\textbf{Model} & \textbf{Params (M)} & \textbf{Acc (\%)} & \textbf{Macro-F1} & \textbf{Weighted-F1} & \textbf{Loss} & \textbf{Time (s)} \\
+\hline
+ConvMixer-256/8 & 0.72 & 97.63$\pm$0.59 & 0.9761$\pm$0.0059 & 0.9763$\pm$0.0059 & 0.1336$\pm$0.0995 & 135.7$\pm$12.7 \\
+ResNet-18 & 11.17 & 98.56$\pm$1.87 & 0.9854$\pm$0.0189 & 0.9854$\pm$0.0190 & 0.0481$\pm$0.0264 & 1403.4$\pm$103.9 \\
+MobileNetV2 & 2.24 & 91.96$\pm$2.14 & 0.9187$\pm$0.0215 & 0.9194$\pm$0.0215 & 0.2235$\pm$0.0623 & 119.4$\pm$0.9 \\
+EfficientNet & 4.02 & 95.05$\pm$2.54 & 0.9502$\pm$0.0254 & 0.9502$\pm$0.0256 & 0.1449$\pm$0.0757 & 244.9$\pm$7.2 \\
+AST (tiny configuration) & 5.78 & 95.88$\pm$1.21 & 0.9587$\pm$0.0122 & 0.9588$\pm$0.0120 & 0.1114$\pm$0.0223 & 108.7$\pm$26.6 \\
+\hline
+\end{tabular}
+\normalsize
+\end{table}
+
+
+
+\subsection*{Quantitative Results on the Test Set}
+
+The ConvMixer single-run performance below is retained as a representative reference for class-wise behavior analysis. Final cross-model conclusions are based on the controlled multi-seed comparison in Table~\ref{tab:controlled_model_comparison}.
+
+\begin{table}[htbp]
+
+\centering
+
+\caption{\label{tab:score}Overall performance of the ConvMixer-based model evaluated on the test dataset}
+
+\begin{tabular}{|l|l|}
+
+\hline
+
+\textbf{Metric} & \textbf{Value} \\
+
+\hline
+
+Test Accuracy & \textbf{97.42\%} \\
+
+\hline
+
+Test Loss & 0.0896 \\
+
+\hline
+
+Macro Average F1-score & 0.97 \\
+
+\hline
+
+Weighted Average F1-score & 0.97 \\
+
+\hline
+
+\end{tabular}
+
+\end{table}
+
+The high overall Test Accuracy of 97.42\% confirms the model's effectiveness for the Vietnamese speech command task in this representative run. Furthermore, the consistency between the Macro and Weighted average F1-scores (0.97) indicates balanced per-class behavior under this setting.
+
+\subsection*{Detailed Analysis by Class}
+
+\begin{table}[htbp]
+
+\centering
+
+\caption{\label{tab:classification_report}Classification Report (Precision, Recall, F1-score) for the 13 Classes of Vietnamese Speech Commands}
+
+\begin{tabular}{|l|c|c|c|c|}
+
+\toprule
+
+\textbf{Class} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{Support} \\
+
+\midrule
+
+\textit{bat\_den} & 0.97 & 0.97 & 0.97 & 15 \\
+
+\textit{bat\_dieu\_hoa} & 1.00 & 1.00 & 1.00 & 14 \\
+
+\textit{bat\_quat} & 1.00 & 0.87 & 0.93 & 15 \\
+
+\textit{bat\_tv} & 1.00 & 1.00 & 1.00 & 13 \\
+
+\textit{do\_am} & 1.00 & 1.00 & 1.00 & 16 \\
+
+\textit{dong\_rem} & 0.97 & 0.97 & 0.97 & 15 \\
+
+\textit{mo\_rem} & 1.00 & 1.00 & 1.00 & 16 \\
+
+\textit{nhiet\_do} & 0.97 & 0.97 & 0.97 & 15 \\
+
+\textit{tat\_den} & 0.97 & 0.97 & 0.97 & 15 \\
+
+\textit{tat\_dieu\_hoa} & 0.97 & 0.97 & 0.97 & 15 \\
+
+\textit{tat\_quat} & 0.82 & 1.00 & 0.90 & 15 \\
+
+\textit{tat\_tv} & 1.00 & 1.00 & 1.00 & 15 \\
+
+\textit{unknown} & 1.00 & 1.00 & 1.00 & 15 \\
+
+\midrule
+
+\textbf{Accuracy} & \multicolumn{3}{r|}{} & 0.97 \\
+
+\textbf{Macro Avg} & 0.97 & 0.97 & 0.97 & 194 \\
+
+\textbf{Weighted Avg} & 0.97 & 0.97 & 0.97 & 194 \\
+
+\bottomrule
+
+\end{tabular}
+
+\end{table}
+
+
+
+A detailed analysis of Precision, Recall, and F1-score for each class (Table~\ref{tab:classification_report}) was conducted to pinpoint specific classification behavior. Six of the 13 classes achieved a perfect F1-score of 1.00: \textit{bat\_dieu\_hoa}, \textit{bat\_tv}, \textit{do\_am}, \textit{mo\_rem}, \textit{tat\_tv}, and the unknown class. Minor errors were predominantly observed in commands related to the fan and light, specifically in the contrasting pair \textit{bat\_quat} (turn on fan) and \textit{tat\_quat} (turn off fan). The command \textit{bat\_quat} registered a Recall of 0.87 but a perfect Precision of 1.00. This implies that all instances predicted as \textit{bat\_quat} were correct, but the model failed to detect 13\% of the actual \textit{bat\_quat} samples (false negatives). Conversely, the command \textit{tat\_quat} yielded a low Precision of 0.82 but a perfect Recall of 1.00. Here, all true \textit{tat\_quat} samples were correctly identified, but some samples from other classes (likely \textit{bat\_quat}) were erroneously predicted as \textit{tat\_quat} (false positives). Other classes such as \textit{bat\_den}, \textit{dong\_rem}, \textit{nhiet\_do}, \textit{tat\_den}, and \textit{tat\_dieu\_hoa} all maintained a robust F1-score of 0.97.
+
+\begin{figure}[htbp]
+
+\centering
+
+\includegraphics[width=0.75\linewidth]{imgs/fig6.png}
+
+\caption{
+Confusion matrix illustrating the classification performance across all 13 command classes.
+Most misclassifications occur between acoustically similar commands, such as \textit{bat\_quat} and \textit{tat\_quat}
+}
+
+\label{fig:confusion}
+
+\end{figure}
+
+\begin{figure}[htbp]
+
+\centering
+
+\includegraphics[width=0.8\linewidth]{imgs/fig7.png}
+
+\caption{
+Class-wise metrics (Precision, Recall, and F1-score) of the ConvMixer model,
+highlighting high robustness across most classes, with slight performance dips for \textit{tat\_quat} (0.90) and \textit{bat\_quat} (0.93)
+}
+
+\label{fig:metrics}
+
+\end{figure}
+
+The confusion matrix in Figure~\ref{fig:confusion} confirms that classification errors primarily occur between semantically or acoustically similar commands,
+
+while Figure~\ref{fig:metrics} presents detailed per-class performance metrics, demonstrating overall model robustness.
+
+
+
+\subsection*{Comparative Interpretation Under Controlled Settings}
+
+Under the revised protocol, model comparisons are now designed to be controlled and statistically grounded rather than cross-dataset or single-run. This shift allows conclusions to be framed in terms of competitiveness, parameter efficiency, and stability across seeds, instead of absolute superiority claims. In this context, ConvMixer is evaluated as a lightweight patch-based alternative whose strengths are expected to derive from depthwise spatial mixing and pointwise channel mixing under consistent Mel-spectrogram inputs.
+
+The comparative discussion focuses on: (i) accuracy/F1 trade-offs versus parameter count, (ii) variance across seeds as a robustness indicator, and (iii) computational cost versus performance for deployment-oriented scenarios.

@@ -1,0 +1,47 @@
+\section*{Appendix}
+
+\subsection*{Detailed Technical Configuration and Training Parameters}
+
+Table~\ref{tab:config} summarizes the main technical parameters used during feature extraction and model training.
+
+\begin{table}[htbp]
+\centering
+\caption{\label{tab:config}Summary of feature extraction and ConvMixer training configuration}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Parameter} & \textbf{Value / Setting} \\
+\hline
+Hardware Platform & Intel Core i7-13700H CPU, 32 GB RAM, PyTorch (CPU mode) \\
+\hline
+Model Architecture & ConvMixer-256/8 \\
+\hline
+Total Trainable Parameters & $\mathbf{719,117}$ \\
+\hline
+Hidden Dimension ($dim$) & 256 \\
+\hline
+Depth (Number of Blocks) & 8 \\
+\hline
+Patch Embedding Kernel/Stride & $(7 \times 7)$ \\
+\hline
+Depthwise Convolution Kernel & $(9 \times 9)$ \\
+\hline
+Batch Size & 32 \\
+\hline
+Optimizer & Adam ($lr = 0.001$) \\
+\hline
+Weight Decay (L2 Regularization) & $weight\_decay = 1\times10^{-4}$ \\
+\hline
+Activation Function & GELU \\
+\hline
+Mel-spectrogram Input Size & (128, 32) \\
+\hline
+STFT Hop Length & 128 samples \\
+\hline
+Number of Mel Bands ($n_{mels}$) & 128 \\
+\hline
+Early Stopping Patience / $\Delta$ & 5 epochs / $min\_delta = 0.02$ \\
+\hline
+LR Scheduler (Patience / Factor) & 3 epochs / 0.2 \\
+\hline
+\end{tabular}
+\end{table}

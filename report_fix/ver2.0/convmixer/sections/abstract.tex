@@ -1,0 +1,10 @@
+\begin{abstract}
+
+Audio classification is a fundamental task pivotal to intelligent real-world systems, including voice control and environmental monitoring. However, conventional Convolutional Neural Networks (CNNs) often suffer from large parameter redundancy and limited generalization capability, whereas modern Transformer-based architectures typically necessitate significant computational overhead.
+In this study, we present an empirical investigation of the ConvMixer architecture—a simple yet powerful model originally developed for computer vision—for audio classification using the Mel-spectrogram representation.
+To our knowledge, this work represents an early and systematic effort to adapt ConvMixer to the audio domain, bridging vision-inspired patch-based design and efficient speech understanding.
+The proposed framework incorporates a robust signal processing pipeline (denoising, WebRTC VAD, normalization) to generate fixed-size (128×32) Mel-spectrogram inputs. The ConvMixer model was configured with 8 deep blocks and 256 channels, utilizing approximately 0.7 million parameters.
+On a Vietnamese speech command dataset of 1,853 samples and 13 classes, the ConvMixer-256/8 configuration achieved strong representative single-run performance (test accuracy 97.42\%, macro/weighted F1-score 0.97). To improve fairness and statistical reliability, we further define a controlled benchmark protocol in which ConvMixer-256/8, ResNet-18, MobileNetV2, EfficientNet, and AST (tiny configuration) are trained under the same preprocessing, augmentation, split policy, and training budget, and evaluated across five random seeds (42--46) using mean$\pm$std reporting. Under this controlled five-seed setting, ConvMixer-256/8 reached 97.63$\pm$0.59 test accuracy, with macro-F1 0.9761$\pm$0.0059 and weighted-F1 0.9763$\pm$0.0059, while using only 0.72M parameters.
+Overall, these results and the revised protocol indicate that a purely convolutional patch-based architecture is a parameter-efficient and practical alternative for real-time speech command recognition, with clear potential for embedded and edge-AI deployment.
+
+\end{abstract}
