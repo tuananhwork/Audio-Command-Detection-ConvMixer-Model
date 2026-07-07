@@ -54,7 +54,9 @@ class AudioTransform:
         self.freq_mask_prob = freq_mask_prob
         self.time_stretch_prob = time_stretch_prob
 
-    def time_mask(self, mel_spec: np.ndarray, max_mask_ratio: float = 0.1) -> np.ndarray:
+    def time_mask(
+        self, mel_spec: np.ndarray, max_mask_ratio: float = 0.1
+    ) -> np.ndarray:
         if random.random() >= self.time_mask_prob:
             return mel_spec
         x = mel_spec[0] if mel_spec.ndim == 3 else mel_spec
@@ -65,7 +67,9 @@ class AudioTransform:
         x[:, start : start + mask_len] = 0
         return np.expand_dims(x, axis=0)
 
-    def freq_mask(self, mel_spec: np.ndarray, max_mask_ratio: float = 0.1) -> np.ndarray:
+    def freq_mask(
+        self, mel_spec: np.ndarray, max_mask_ratio: float = 0.1
+    ) -> np.ndarray:
         if random.random() >= self.freq_mask_prob:
             return mel_spec
         x = mel_spec[0] if mel_spec.ndim == 3 else mel_spec
@@ -76,7 +80,9 @@ class AudioTransform:
         x[start : start + mask_len, :] = 0
         return np.expand_dims(x, axis=0)
 
-    def time_stretch(self, mel_spec: np.ndarray, stretch_range: Tuple[float, float] = (0.8, 1.2)) -> np.ndarray:
+    def time_stretch(
+        self, mel_spec: np.ndarray, stretch_range: Tuple[float, float] = (0.8, 1.2)
+    ) -> np.ndarray:
         if random.random() >= self.time_stretch_prob:
             return mel_spec
         x = mel_spec[0] if mel_spec.ndim == 3 else mel_spec
@@ -125,11 +131,7 @@ class MelDataset(Dataset):
 
 def get_classes(data_dir: str) -> List[str]:
     return sorted(
-        [
-            d
-            for d in os.listdir(data_dir)
-            if os.path.isdir(os.path.join(data_dir, d))
-        ]
+        [d for d in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, d))]
     )
 
 
@@ -158,7 +160,10 @@ def build_stratified_split(
         test_files = files[n_train + n_val :]
 
         split_data["train"].extend(
-            [(os.path.join(class_dir, f), class_to_idx[class_name]) for f in train_files]
+            [
+                (os.path.join(class_dir, f), class_to_idx[class_name])
+                for f in train_files
+            ]
         )
         split_data["val"].extend(
             [(os.path.join(class_dir, f), class_to_idx[class_name]) for f in val_files]
@@ -179,7 +184,9 @@ def _load_mel_2d(file_path: str) -> np.ndarray:
     if features.ndim == 3:
         features = features[0]
     if features.ndim != 2:
-        raise ValueError(f"Expected 2D/3D mel array, got shape {features.shape} from {file_path}")
+        raise ValueError(
+            f"Expected 2D/3D mel array, got shape {features.shape} from {file_path}"
+        )
     return features
 
 
@@ -190,7 +197,9 @@ def infer_mel_shape(samples: Sequence[Tuple[str, int]]) -> Tuple[int, int]:
     return int(features.shape[0]), int(features.shape[1])
 
 
-def compute_dataset_norm_stats(samples: Sequence[Tuple[str, int]]) -> Tuple[float, float]:
+def compute_dataset_norm_stats(
+    samples: Sequence[Tuple[str, int]],
+) -> Tuple[float, float]:
     if not samples:
         raise ValueError("Cannot compute normalization stats from empty sample list.")
 
@@ -227,7 +236,12 @@ class BasicBlock(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, stride: int = 1) -> None:
         super().__init__()
         self.conv1 = nn.Conv2d(
-            in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False
+            in_channels,
+            out_channels,
+            kernel_size=3,
+            stride=stride,
+            padding=1,
+            bias=False,
         )
         self.bn1 = nn.BatchNorm2d(out_channels)
         self.relu = nn.ReLU(inplace=True)
@@ -239,7 +253,9 @@ class BasicBlock(nn.Module):
         self.downsample = None
         if stride != 1 or in_channels != out_channels:
             self.downsample = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride, bias=False),
+                nn.Conv2d(
+                    in_channels, out_channels, kernel_size=1, stride=stride, bias=False
+                ),
                 nn.BatchNorm2d(out_channels),
             )
 
@@ -269,7 +285,9 @@ class ResNet18Fallback(nn.Module):
         self.fc = nn.Linear(512, num_classes)
 
     @staticmethod
-    def _make_layer(in_channels: int, out_channels: int, blocks: int, stride: int) -> nn.Sequential:
+    def _make_layer(
+        in_channels: int, out_channels: int, blocks: int, stride: int
+    ) -> nn.Sequential:
         layers = [BasicBlock(in_channels, out_channels, stride=stride)]
         for _ in range(1, blocks):
             layers.append(BasicBlock(out_channels, out_channels, stride=1))
@@ -286,11 +304,13 @@ class ResNet18Fallback(nn.Module):
         return self.fc(x)
 
 
-def build_convmixer_256_8(num_classes: int) -> nn.Module:
-    dim = 256
-    depth = 8
-    kernel_size = 9
-    patch_size = 7
+def build_convmixer(
+    num_classes: int,
+    dim: int,
+    depth: int,
+    kernel_size: int = 9,
+    patch_size: int = 7,
+) -> nn.Module:
     return nn.Sequential(
         nn.Conv2d(1, dim, kernel_size=patch_size, stride=patch_size),
         nn.GELU(),
@@ -320,6 +340,30 @@ def build_convmixer_256_8(num_classes: int) -> nn.Module:
         nn.Flatten(),
         nn.Linear(dim, num_classes),
     )
+
+
+def build_convmixer_64_8(num_classes: int) -> nn.Module:
+    return build_convmixer(num_classes=num_classes, dim=64, depth=8)
+
+
+def build_convmixer_128_8(num_classes: int) -> nn.Module:
+    return build_convmixer(num_classes=num_classes, dim=128, depth=8)
+
+
+def build_convmixer_256_8(num_classes: int) -> nn.Module:
+    return build_convmixer(num_classes=num_classes, dim=256, depth=8)
+
+
+def build_convmixer_256_12(num_classes: int) -> nn.Module:
+    return build_convmixer(num_classes=num_classes, dim=256, depth=12)
+
+
+def build_convmixer_512_12(num_classes: int) -> nn.Module:
+    return build_convmixer(num_classes=num_classes, dim=512, depth=12)
+
+
+def build_convmixer_512_16(num_classes: int) -> nn.Module:
+    return build_convmixer(num_classes=num_classes, dim=512, depth=16)
 
 
 def build_resnet18(num_classes: int) -> nn.Module:
@@ -365,7 +409,9 @@ def build_efficientnet_b0(num_classes: int) -> nn.Module:
         )
         model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
         return model
-    print("[WARN] torchvision không khả dụng, dùng ResNet18Fallback cho efficientnet_b0.")
+    print(
+        "[WARN] torchvision không khả dụng, dùng ResNet18Fallback cho efficientnet_b0."
+    )
     return ResNet18Fallback(num_classes)
 
 
@@ -391,7 +437,9 @@ class ASTTiny(nn.Module):
             stride=patch_size,
         )
 
-        num_patches = (input_size[0] // patch_size[0]) * (input_size[1] // patch_size[1])
+        num_patches = (input_size[0] // patch_size[0]) * (
+            input_size[1] // patch_size[1]
+        )
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
         self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + 1, embed_dim))
         self.dropout = nn.Dropout(dropout)
@@ -484,7 +532,12 @@ def build_ast_tiny(num_classes: int, config: "TrainConfig") -> nn.Module:
 
 def build_model(model_name: str, num_classes: int, config: "TrainConfig") -> nn.Module:
     builders = {
+        "convmixer_64_8": build_convmixer_64_8,
+        "convmixer_128_8": build_convmixer_128_8,
         "convmixer_256_8": build_convmixer_256_8,
+        "convmixer_256_12": build_convmixer_256_12,
+        "convmixer_512_12": build_convmixer_512_12,
+        "convmixer_512_16": build_convmixer_512_16,
         "resnet18": build_resnet18,
         "mobilenet_v2": build_mobilenet_v2,
         "efficientnet_b0": build_efficientnet_b0,
@@ -510,7 +563,7 @@ class TrainConfig:
         "resnet18",
         "ast_official",
     )
-    seeds: Tuple[int, ...] = (42,)
+    seeds: Tuple[int, ...] = (42, 43, 44, 45, 46)
     split_seed: int = 42
     train_ratio: float = 0.75
     val_ratio: float = 0.15
@@ -542,16 +595,8 @@ class TrainConfig:
     ast_official_lr: float = 1e-3
     ast_official_weight_decay: float = 1e-4
     use_model_specific_hparams: bool = False
-    # Multi-run controls:
-    # - include_existing_runs: load previous baseline_runs.csv before new execution
-    # - skip_completed_runs: skip only when full key matches
-    #   (model, seed, run_id, config_hash, data_fingerprint, split_signature)
-    # - summary_only_config_models: summary only for models in config.model_names
-    include_existing_runs: bool = True
-    skip_completed_runs: bool = True
+    # Kept for backward compatibility with existing config constructors.
     summary_only_config_models: bool = True
-    require_config_match_for_skip: bool = True
-    strict_seed_completeness: bool = True
 
 
 def _create_dataloaders(
@@ -602,7 +647,9 @@ def _create_dataloaders(
     }
 
 
-def _resolve_ast_config(config: TrainConfig, split_data: Dict[str, List[Tuple[str, int]]]) -> TrainConfig:
+def _resolve_ast_config(
+    config: TrainConfig, split_data: Dict[str, List[Tuple[str, int]]]
+) -> TrainConfig:
     resolved = copy.deepcopy(config)
     train_samples = split_data.get("train", [])
 
@@ -622,17 +669,24 @@ def _resolve_ast_config(config: TrainConfig, split_data: Dict[str, List[Tuple[st
         resolved.ast_official_norm_mean = mean
         resolved.ast_official_norm_std = std
 
-    if resolved.ast_official_norm_mean is None or resolved.ast_official_norm_std is None:
+    if (
+        resolved.ast_official_norm_mean is None
+        or resolved.ast_official_norm_std is None
+    ):
         raise ValueError(
             "Official AST normalization is missing. Set ast_official_norm_mean/std "
             "or enable ast_official_auto_norm_from_train=True."
         )
     if resolved.ast_official_norm_std <= 0:
-        raise ValueError(f"ast_official_norm_std must be > 0, got {resolved.ast_official_norm_std}.")
+        raise ValueError(
+            f"ast_official_norm_std must be > 0, got {resolved.ast_official_norm_std}."
+        )
 
     if resolved.ast_official_audioset_pretrain:
         if resolved.ast_official_model_size != "base384":
-            raise ValueError("audioset_pretrain=True requires ast_official_model_size='base384'.")
+            raise ValueError(
+                "audioset_pretrain=True requires ast_official_model_size='base384'."
+            )
         if resolved.ast_official_fstride != 10 or resolved.ast_official_tstride != 10:
             raise ValueError("audioset_pretrain=True requires fstride=tstride=10.")
 
@@ -849,7 +903,11 @@ def _train_one_model(
             patience_counter += 1
 
         prefix = f"[{run_name}] " if run_name else ""
-        status = "improved" if improved else f"no_improve({patience_counter}/{config.patience})"
+        status = (
+            "improved"
+            if improved
+            else f"no_improve({patience_counter}/{config.patience})"
+        )
         print(
             f"{prefix}Epoch {epoch + 1}/{config.num_epochs} | "
             f"train_loss={epoch_train_loss:.4f} | val_loss={epoch_val_loss:.4f} | "
@@ -857,7 +915,9 @@ def _train_one_model(
         )
 
         if patience_counter >= config.patience:
-            print(f"{prefix}Early stopping at epoch {epoch + 1}. Best val_acc={best_val_acc:.2f}% (epoch {best_epoch})")
+            print(
+                f"{prefix}Early stopping at epoch {epoch + 1}. Best val_acc={best_val_acc:.2f}% (epoch {best_epoch})"
+            )
             break
 
     train_seconds = time.perf_counter() - start_time
@@ -895,7 +955,9 @@ def _evaluate_model(
         "test_accuracy": accuracy_score(y_true, y_pred) * 100 if y_true else 0.0,
         "macro_f1": f1_score(y_true, y_pred, average="macro", zero_division=0),
         "weighted_f1": f1_score(y_true, y_pred, average="weighted", zero_division=0),
-        "macro_precision": precision_score(y_true, y_pred, average="macro", zero_division=0),
+        "macro_precision": precision_score(
+            y_true, y_pred, average="macro", zero_division=0
+        ),
         "macro_recall": recall_score(y_true, y_pred, average="macro", zero_division=0),
         "infer_seconds": infer_seconds,
         "labels": y_true,
@@ -913,12 +975,16 @@ def _evaluate_model(
 
 
 def run_baseline_suite(config: TrainConfig):
+    """Compact baseline runner.
+
+    - Always trains the requested (model, seed) jobs for the current run.
+    - Writes only the metrics needed for report-level model comparison.
+    """
     if not str(config.run_id).strip():
         raise ValueError("config.run_id must be non-empty.")
 
     os.makedirs(config.output_dir, exist_ok=True)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    runs_path = os.path.join(config.output_dir, "baseline_runs.csv")
 
     class_names, split_data = build_stratified_split(
         config.data_dir,
@@ -926,8 +992,6 @@ def run_baseline_suite(config: TrainConfig):
         train_ratio=config.train_ratio,
         val_ratio=config.val_ratio,
     )
-    data_fingerprint = _make_data_fingerprint(config.data_dir)
-    split_signature = _make_split_signature(split_data=split_data, data_dir=config.data_dir)
 
     ast_config = config
     if any(model_name in AST_OFFICIAL_MODEL_NAMES for model_name in config.model_names):
@@ -941,91 +1005,30 @@ def run_baseline_suite(config: TrainConfig):
             f"lr={ast_config.ast_official_lr}, wd={ast_config.ast_official_weight_decay}"
         )
 
-    config_hash_by_model: Dict[str, str] = {}
-    for model_name in config.model_names:
-        model_config = ast_config if model_name in AST_OFFICIAL_MODEL_NAMES else config
-        config_hash_by_model[model_name] = _make_model_config_hash(
-            config=model_config,
-            model_name=model_name,
-            data_fingerprint=data_fingerprint,
-            split_signature=split_signature,
-        )
-
-    runs_by_key: Dict[Tuple[str, int, str, str, str, str], Dict[str, object]] = {}
-    history_store = {}
-    trained_count = 0
-    skipped_count = 0
-
-    if config.include_existing_runs and os.path.exists(runs_path):
-        existing_df = pd.read_csv(runs_path)
-        required_cols = {"model", "seed", "run_id"}
-        if required_cols.issubset(set(existing_df.columns)):
-            existing_df = existing_df[existing_df["run_id"].astype(str) == str(config.run_id)].copy()
-
-            for _, row in existing_df.iterrows():
-                model_name = str(row["model"])
-                if model_name not in config.model_names:
-                    continue
-
-                existing_config_hash = str(row.get("config_hash", ""))
-                existing_data_fingerprint = str(row.get("data_fingerprint", ""))
-                existing_split_signature = str(row.get("split_signature", ""))
-                if config.require_config_match_for_skip:
-                    if existing_config_hash != config_hash_by_model.get(model_name, ""):
-                        continue
-                    if existing_data_fingerprint != data_fingerprint:
-                        continue
-                    if existing_split_signature != split_signature:
-                        continue
-
-                key = _make_run_key(
-                    model_name=model_name,
-                    seed=int(row["seed"]),
-                    run_id=str(config.run_id),
-                    config_hash=existing_config_hash,
-                    data_fingerprint=existing_data_fingerprint,
-                    split_signature=existing_split_signature,
-                )
-                runs_by_key[key] = row.to_dict()
-            print(f"[INFO] Loaded {len(runs_by_key)} existing runs from {runs_path} for run_id={config.run_id}")
-        else:
-            print(
-                "[WARN] Existing baseline_runs.csv has no run_id column; "
-                "ignoring old cache to avoid cross-version contamination."
-            )
+    runs: List[Dict[str, object]] = []
+    history_store: Dict[str, Dict[str, List[float]]] = {}
 
     for seed in config.seeds:
         for model_name in config.model_names:
-            run_hash = config_hash_by_model[model_name]
-            key = _make_run_key(
-                model_name=model_name,
-                seed=int(seed),
-                run_id=config.run_id,
-                config_hash=run_hash,
-                data_fingerprint=data_fingerprint,
-                split_signature=split_signature,
-            )
-            if config.skip_completed_runs and key in runs_by_key:
-                skipped_count += 1
-                print(
-                    f"[SKIP] model={model_name} seed={seed} already exists "
-                    f"(run_id={config.run_id}, config_hash={run_hash})"
-                )
-                continue
-
-            set_seed(seed)
+            set_seed(int(seed))
             run_name = f"{model_name}|seed{seed}"
+
             dataloaders = _create_dataloaders(
                 split_data=split_data,
                 batch_size=config.batch_size,
                 num_workers=config.num_workers,
-                seed=seed,
+                seed=int(seed),
             )
 
-            model_config = ast_config if model_name in AST_OFFICIAL_MODEL_NAMES else config
-            model = build_model(model_name, num_classes=len(class_names), config=model_config).to(device)
+            model_config = (
+                ast_config if model_name in AST_OFFICIAL_MODEL_NAMES else config
+            )
+            model = build_model(
+                model_name, num_classes=len(class_names), config=model_config
+            ).to(device)
             n_params = count_parameters(model)
             run_lr, run_wd = _get_optimizer_hparams(model_name, model_config)
+
             print(
                 f"[START] model={model_name} seed={seed} params={n_params} "
                 f"device={device} lr={run_lr} wd={run_wd}"
@@ -1047,42 +1050,37 @@ def run_baseline_suite(config: TrainConfig):
                 device=device,
             )
 
-            model_ckpt = os.path.join(config.output_dir, f"{model_name}_seed{seed}_best.pth")
+            model_ckpt = os.path.join(
+                config.output_dir, f"{model_name}_seed{seed}_best.pth"
+            )
             torch.save(model.state_dict(), model_ckpt)
 
-            report_path = os.path.join(config.output_dir, f"{model_name}_seed{seed}_report.json")
+            report_path = os.path.join(
+                config.output_dir, f"{model_name}_seed{seed}_report.json"
+            )
             with open(report_path, "w", encoding="utf-8") as f:
-                json.dump(metrics["classification_report"], f, ensure_ascii=False, indent=2)
+                json.dump(
+                    metrics["classification_report"], f, ensure_ascii=False, indent=2
+                )
 
             run = {
                 "model": model_name,
-                "seed": seed,
-                "run_id": config.run_id,
-                "data_version": config.data_version or config.run_id,
-                "data_dir": str(Path(config.data_dir).resolve()),
-                "data_fingerprint": data_fingerprint,
-                "split_signature": split_signature,
-                "split_seed": config.split_seed,
-                "train_ratio": config.train_ratio,
-                "val_ratio": config.val_ratio,
-                "config_hash": run_hash,
-                "params": n_params,
-                "best_epoch": best_epoch,
-                "train_seconds": train_seconds,
-                "infer_seconds": metrics["infer_seconds"],
-                "test_loss": metrics["test_loss"],
-                "test_accuracy": metrics["test_accuracy"],
-                "macro_f1": metrics["macro_f1"],
-                "weighted_f1": metrics["weighted_f1"],
-                "macro_precision": metrics["macro_precision"],
-                "macro_recall": metrics["macro_recall"],
-                "lr": run_lr,
-                "weight_decay": run_wd,
+                "seed": int(seed),
+                "run_id": str(config.run_id),
+                "params": float(n_params),
+                "best_epoch": int(best_epoch),
+                "train_seconds": float(train_seconds),
+                "infer_seconds": float(metrics["infer_seconds"]),
+                "test_loss": float(metrics["test_loss"]),
+                "test_accuracy": float(metrics["test_accuracy"]),
+                "macro_f1": float(metrics["macro_f1"]),
+                "weighted_f1": float(metrics["weighted_f1"]),
+                "lr": float(run_lr),
+                "weight_decay": float(run_wd),
                 "checkpoint_path": model_ckpt,
                 "report_path": report_path,
             }
-            runs_by_key[key] = run
-            trained_count += 1
+            runs.append(run)
             history_store[f"{model_name}_seed{seed}"] = history
 
             print(
@@ -1090,41 +1088,17 @@ def run_baseline_suite(config: TrainConfig):
                 f"acc={run['test_accuracy']:.2f}% macro_f1={run['macro_f1']:.4f}"
             )
 
-    runs_df = pd.DataFrame(list(runs_by_key.values()))
+    runs_df = pd.DataFrame(runs)
     if not runs_df.empty:
-        runs_df["seed"] = runs_df["seed"].astype(int)
         runs_df = runs_df.sort_values(["model", "seed"]).reset_index(drop=True)
+
+    runs_path = os.path.join(config.output_dir, "baseline_runs.csv")
     runs_df.to_csv(runs_path, index=False)
 
-    summary_input = runs_df.copy()
-    if not summary_input.empty:
-        summary_input = summary_input[summary_input["run_id"].astype(str) == str(config.run_id)].copy()
-        summary_input = summary_input[summary_input["data_fingerprint"].astype(str) == data_fingerprint].copy()
-        summary_input = summary_input[summary_input["split_signature"].astype(str) == split_signature].copy()
-        if config.summary_only_config_models:
-            summary_input = summary_input[summary_input["model"].isin(config.model_names)].copy()
-        summary_input = summary_input[
-            summary_input.apply(
-                lambda row: (
-                    str(row.get("model")) not in config_hash_by_model
-                    or str(row.get("config_hash", "")) == config_hash_by_model.get(str(row["model"]), "")
-                ),
-                axis=1,
-            )
-        ].copy()
-
-    if not summary_input.empty or config.strict_seed_completeness:
-        validate_seed_completeness(
-            runs_df=summary_input,
-            model_names=config.model_names,
-            seeds=config.seeds,
-            strict=config.strict_seed_completeness,
-        )
-
     summary_df = pd.DataFrame()
-    if not summary_input.empty:
+    if not runs_df.empty:
         summary_df = (
-            summary_input.groupby("model", as_index=False)
+            runs_df.groupby("model", as_index=False)
             .agg(
                 n_runs=("seed", "nunique"),
                 params=("params", "mean"),
@@ -1134,11 +1108,25 @@ def run_baseline_suite(config: TrainConfig):
                 macro_f1_std=("macro_f1", "std"),
                 weighted_f1_mean=("weighted_f1", "mean"),
                 weighted_f1_std=("weighted_f1", "std"),
+                test_loss_mean=("test_loss", "mean"),
+                test_loss_std=("test_loss", "std"),
                 train_seconds_mean=("train_seconds", "mean"),
+                train_seconds_std=("train_seconds", "std"),
                 infer_seconds_mean=("infer_seconds", "mean"),
             )
-            .fillna(0.0)
+            .copy()
         )
+
+        for col in [
+            "test_accuracy_std",
+            "macro_f1_std",
+            "weighted_f1_std",
+            "test_loss_std",
+            "train_seconds_std",
+        ]:
+            if col in summary_df.columns:
+                summary_df[col] = summary_df[col].fillna(0.0)
+
         for metric in ("test_accuracy", "macro_f1", "weighted_f1"):
             std_col = f"{metric}_std"
             ci_col = f"{metric}_ci95"
@@ -1151,32 +1139,19 @@ def run_baseline_suite(config: TrainConfig):
     summary_path = os.path.join(config.output_dir, "baseline_summary.csv")
     summary_df.to_csv(summary_path, index=False)
 
-    split_size = {
-        "train": len(split_data["train"]),
-        "val": len(split_data["val"]),
-        "test": len(split_data["test"]),
-    }
     metadata = {
         "device": str(device),
-        "run_id": config.run_id,
+        "run_id": str(config.run_id),
         "data_version": config.data_version or config.run_id,
         "data_dir": str(Path(config.data_dir).resolve()),
-        "data_fingerprint": data_fingerprint,
-        "split_signature": split_signature,
-        "config_hash_by_model": config_hash_by_model,
         "classes": class_names,
-        "split_size": split_size,
+        "split_size": {
+            "train": len(split_data["train"]),
+            "val": len(split_data["val"]),
+            "test": len(split_data["test"]),
+        },
         "requested_models": list(config.model_names),
-        "requested_seeds": list(config.seeds),
-        "trained_count": trained_count,
-        "skipped_count": skipped_count,
-        "use_model_specific_hparams": config.use_model_specific_hparams,
-        "ast_official_imagenet_pretrain": config.ast_official_imagenet_pretrain,
-        "strict_seed_completeness": config.strict_seed_completeness,
-        "require_config_match_for_skip": config.require_config_match_for_skip,
-        "include_existing_runs": config.include_existing_runs,
-        "skip_completed_runs": config.skip_completed_runs,
-        "summary_only_config_models": config.summary_only_config_models,
+        "requested_seeds": [int(s) for s in config.seeds],
         "runs_csv": runs_path,
         "summary_csv": summary_path,
     }

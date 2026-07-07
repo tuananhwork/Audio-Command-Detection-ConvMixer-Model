@@ -5,5 +5,10 @@ data/rename.py
 urban/
 docs/
 *.pyc
-data/models/baselines/*_best.pth
-data/models/baselines/*_report.json
+# data/models/baselines/*_best.pth
+# data/models/baselines/*_report.json
+data/models/baselines/
+report_fix/ver1.0/
+report_fix/ver2.0/convmixer_txt/
+.vscode
+memory/

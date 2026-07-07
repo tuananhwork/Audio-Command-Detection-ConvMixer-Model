@@ -12,7 +12,7 @@ DEFAULT_BASELINE_MODELS: Tuple[str, ...] = (
     "efficientnet_b0",
     "mobilenet_v2",
 )
-DEFAULT_BASELINE_SEEDS: Tuple[int, ...] = (42, 43, 44, 45, 46)
+DEFAULT_BASELINE_SEEDS: Tuple[int, ...] = (42,)
 
 
 def build_output_dir(base_output_dir: Path, run_id: str) -> Path:
@@ -28,15 +28,15 @@ def make_fair_train_config(
     run_id: str,
     model_names: Optional[Sequence[str]] = None,
     seeds: Sequence[int] = DEFAULT_BASELINE_SEEDS,
-    include_existing_runs: bool = True,
-    skip_completed_runs: bool = True,
 ) -> TrainConfig:
     selected_models = tuple(model_names) if model_names is not None else DEFAULT_BASELINE_MODELS
     output_dir = build_output_dir(base_output_dir=base_output_dir, run_id=run_id)
 
     # Fairness policy for paper comparisons:
-    # - all models train from scratch
-    # - one shared hyperparameter bundle across all models
+    # - all models train from scratch (no external pretraining advantage)
+    # - shared data/split and total epoch budget across models
+    # - allow architecture-specific optimizer hyperparameters where needed
+    #   (notably AST, which is a transformer and is underfit with CNN-style LR)
     return TrainConfig(
         data_dir=str(Path(data_dir).resolve()),
         output_dir=str(output_dir),
@@ -52,18 +52,17 @@ def make_fair_train_config(
         num_epochs=25,
         lr=1e-3,
         weight_decay=1e-4,
-        patience=5,
-        min_delta=0.02,
+        patience=8,
+        min_delta=0.0,
         ast_official_imagenet_pretrain=False,
         ast_official_audioset_pretrain=False,
-        ast_official_lr=1e-3,
-        ast_official_weight_decay=1e-4,
-        use_model_specific_hparams=False,
-        include_existing_runs=include_existing_runs,
-        skip_completed_runs=skip_completed_runs,
+        # Reference: YuanGongND/ast SpeechCommands recipe uses lr=2.5e-4.
+        # Keep pretraining OFF for fair comparison, but align AST optimizer scale.
+        ast_official_lr=2.5e-4,
+        # Official recipe relies on Adam defaults (no explicit weight decay).
+        ast_official_weight_decay=0.0,
+        use_model_specific_hparams=True,
         summary_only_config_models=True,
-        require_config_match_for_skip=True,
-        strict_seed_completeness=True,
     )
 
 

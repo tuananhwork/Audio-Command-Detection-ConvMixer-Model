@@ -1,0 +1,40 @@
+{
+  "device": "cpu",
+  "run_id": "convmixer_config_sweep_v1",
+  "data_version": "convmixer_config_sweep_v1",
+  "data_dir": "/home/anhcbt/extend/workspace/convmixer_model/data/features/mel",
+  "classes": [
+    "bat_den",
+    "bat_dieu_hoa",
+    "bat_quat",
+    "bat_tv",
+    "do_am",
+    "dong_rem",
+    "mo_rem",
+    "nhiet_do",
+    "tat_den",
+    "tat_dieu_hoa",
+    "tat_quat",
+    "tat_tv",
+    "unknown"
+  ],
+  "split_size": {
+    "train": 3341,
+    "val": 665,
+    "test": 454
+  },
+  "requested_models": [
+    "convmixer_64_8",
+    "convmixer_128_8",
+    "convmixer_256_8",
+    "convmixer_256_12",
+    "convmixer_512_12",
+    "convmixer_512_16"
+  ],
+  "requested_seeds": [
+    43,
+    44
+  ],
+  "runs_csv": "/home/anhcbt/extend/workspace/convmixer_model/data/models/convmixer_config_sweep/convmixer_config_sweep_v1/baseline_runs.csv",
+  "summary_csv": "/home/anhcbt/extend/workspace/convmixer_model/data/models/convmixer_config_sweep/convmixer_config_sweep_v1/baseline_summary.csv"
+}

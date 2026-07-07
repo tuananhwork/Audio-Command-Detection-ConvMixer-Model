@@ -1,9 +1,0 @@
-Reviewer 3
-
-I have reviewed the manuscript at a general level and identified several fundamental concerns:
-
-The dataset used in the study appears to be too small to support robust conclusions.
-The references are largely outdated; many are preprints or conference papers, and several do not follow proper APA formatting.
-The authors primarily compare their approach with pre-trained models rather than with relevant existing studies in the literature.
-The problem statement is not clearly articulated or sufficiently exp
-The manuscript does not clearly highlight its major contributions.
